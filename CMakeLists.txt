@@ -1,7 +1,23 @@
 cmake_minimum_required(VERSION 3.7)
 project(MegaProject)
 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -framework GLUT -framework OpenGL -lGLEW -lglfw")
+
 set(CMAKE_CXX_STANDARD 11)
 
 set(SOURCE_FILES main.cpp)
+
+include_directories(
+        glm
+        /usr/local/Cellar/glew/2.0.0/include/
+        /usr/local/Cellar/glfw/3.2.1/include/
+)
+
+link_directories(
+        /usr/local/Cellar/glew/2.0.0/lib/
+        /usr/local/Cellar/glfw/3.2.1/lib/
+)
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
 add_executable(MegaProject ${SOURCE_FILES})
