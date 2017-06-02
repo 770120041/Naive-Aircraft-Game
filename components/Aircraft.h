@@ -67,7 +67,7 @@ private:
 
     GLint winW, winH;
 
-    glm::vec3 viewDirVect = X;
+    glm::vec3 viewDirVect = X, lookAtVect = Y;
 
     glm::mat4 modelMatObj = glm::mat4(1.f), viewMatObj, projMatObj, MVPMatObj, shadowMVPMatObj;
 

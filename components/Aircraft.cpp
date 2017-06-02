@@ -200,14 +200,14 @@ void Aircraft::setCameraCoordinate() {
     viewMatObj = glm::lookAt(
             dir,
             glm::vec3(0.f),
-            Y
+            lookAtVect
     );
 
     updateMVP();
 }
 
 void Aircraft::render() {
-    glm::mat4 lightViewMatrix = glm::lookAt(LightDirection * polar_r, glm::vec3(0.f), Y),
+    glm::mat4 lightViewMatrix = glm::lookAt(LightDirection * polar_r, glm::vec3(0.f), lookAtVect),
     lightProjectionMatrix(glm::frustum(-1.f, 1.f, -1.f, 1.f, 1.f, 5000.f)),
             //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f)),
     // todo !!!! change this to ortho!
@@ -255,18 +255,21 @@ void Aircraft::render() {
 }
 
 void Aircraft::processSpecialKeys(int key, int x, int y) {
+    glm::vec3 AxisX, AxisY(-viewDirVect.z, 0.f, viewDirVect.x), testVect;
+    testVect = viewDirVect;
+    cout << testVect.x << " " << testVect.y << " " << testVect.z << endl;
     switch (key) {
         case GLUT_KEY_UP:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), X);
+            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), lookAtVect);
             break;
         case GLUT_KEY_DOWN:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), X);
+            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), lookAtVect);
             break;
         case GLUT_KEY_LEFT:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), Y);
+            lookAtVect = glm::rotate(lookAtVect, glm::radians(1.0f), viewDirVect);
             break;
         case GLUT_KEY_RIGHT:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), Y);
+            lookAtVect = glm::rotate(lookAtVect, glm::radians(-1.0f), viewDirVect);
             break;
         default:
             break;
