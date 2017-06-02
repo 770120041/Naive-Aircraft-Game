@@ -6,11 +6,15 @@ using namespace std;
 Aircraft *myPlane = new Aircraft;
 
 void prepare() {
+    glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
     glClearColor(1.0, 1.0, 1.0, 1.0);
 
-    myPlane->setupShaders("shader/jet.vert.glsl", "shader/jet.frag.glsl");
+    myPlane->setupShaders("shader/jet.body.vert", "shader/jet.body.frag",
+                          "shader/jet.shadow.vert", "shader/jet.shadow.frag");
     myPlane->setupBuffers("source/airbus.obj");
+    myPlane->setupShadowMat();
     myPlane->loadIdentity();
 }
 

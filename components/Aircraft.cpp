@@ -12,49 +12,82 @@ Aircraft::~Aircraft() {
 
 }
 
-void Aircraft::setupShaders(const char *vertFile, const char *fragFile) {
+void Aircraft::setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
+                            const char *fragShadowFile) {
     std::string vs, fs;
+    const char *vv, *ff;
 
-    v = glCreateShader(GL_VERTEX_SHADER);
-    f = glCreateShader(GL_FRAGMENT_SHADER);
+    vb = glCreateShader(GL_VERTEX_SHADER);
+    fb = glCreateShader(GL_FRAGMENT_SHADER);
 
-    vs = myGL::readShader(vertFile);
-    fs = myGL::readShader(fragFile);
+    vs = myGL::readShader(vertBodyFile);
+    fs = myGL::readShader(fragBodyFile);
 
-    const char *vv = vs.c_str();
-    const char *ff = fs.c_str();
+    vv = vs.c_str();
+    ff = fs.c_str();
 
-    glShaderSource(v, 1, &vv, NULL);
-    glShaderSource(f, 1, &ff, NULL);
+    glShaderSource(vb, 1, &vv, NULL);
+    glShaderSource(fb, 1, &ff, NULL);
 
-    vs.clear();
-    fs.clear();
+    glCompileShader(vb);
+    glCompileShader(fb);
 
-    glCompileShader(v);
-    glCompileShader(f);
+    myGL::dumpShaderLog(vb);
+    myGL::dumpShaderLog(fb);
 
-    myGL::dumpShaderLog(v);
-    myGL::dumpShaderLog(f);
+    pb = glCreateProgram();
+    glAttachShader(pb, vb);
+    glAttachShader(pb, fb);
 
-    p = glCreateProgram();
-    glAttachShader(p, v);
-    glAttachShader(p, f);
+    glBindFragDataLocation(pb, 0, "FragColor");
+    glLinkProgram(pb);
+    myGL::dumpProgramLog(pb);
 
-    glBindFragDataLocation(p, 0, "FragColor");
-    glLinkProgram(p);
-    myGL::dumpProgramLog(p);
+    BodyUniformLoc.vertexLoc = glGetAttribLocation(pb, "vertPosition");
+    BodyUniformLoc.normalLoc = glGetAttribLocation(pb, "vertNormal");
 
-    vertexLoc = glGetAttribLocation(p, "vertPosition");
-    normalLoc = glGetAttribLocation(p, "vertNormal");
+    BodyUniformLoc.ModelMatrixLoc = glGetUniformLocation(pb, "modelMatrix");
+    BodyUniformLoc.ViewMatrixLoc = glGetUniformLocation(pb, "viewMatrix");
+    BodyUniformLoc.ProjectionMatrixLoc = glGetUniformLocation(pb, "projectionMatrix");
+    BodyUniformLoc.MVPMatrixLoc = glGetUniformLocation(pb, "shadowMatrix");
 
+    BodyUniformLoc.AmbientLoc = glGetUniformLocation(pb, "Ambient");
+    BodyUniformLoc.LightColorLoc = glGetUniformLocation(pb, "LightColor");
+    BodyUniformLoc.LightDirectionLoc = glGetUniformLocation(pb, "LightDirection");
+    BodyUniformLoc.HalfVectorLoc = glGetUniformLocation(pb, "HalfVector");
+    BodyUniformLoc.ShininessLoc = glGetUniformLocation(pb, "Shininess");
+    BodyUniformLoc.StrengthLoc = glGetUniformLocation(pb, "Strength");
 
-    MVPMatrixLoc = glGetUniformLocation(p, "MVPMatrix");
-    AmbientLoc = glGetUniformLocation(p, "Ambient");
-    LightColorLoc = glGetUniformLocation(p, "LightColor");
-    LightDirectionLoc = glGetUniformLocation(p, "LightDirection");
-    HalfVectorLoc = glGetUniformLocation(p, "HalfVector");
-    ShininessLoc = glGetUniformLocation(p, "Shininess");
-    StrengthLoc = glGetUniformLocation(p, "Strength");
+    // new shader
+
+    shadowVert = glCreateShader(GL_VERTEX_SHADER);
+    shadowFrag = glCreateShader(GL_FRAGMENT_SHADER);
+
+    vs = myGL::readShader(vertShadowFile);
+    fs = myGL::readShader(fragShadowFile);
+
+    vv = vs.c_str();
+    ff = fs.c_str();
+
+    glShaderSource(shadowVert, 1, &vv, NULL);
+    glShaderSource(shadowFrag, 1, &ff, NULL);
+
+    glCompileShader(shadowVert);
+    glCompileShader(shadowFrag);
+
+    myGL::dumpShaderLog(shadowVert);
+    myGL::dumpShaderLog(shadowFrag);
+
+    shadowProgram = glCreateProgram();
+    glAttachShader(shadowProgram, shadowVert);
+    glAttachShader(shadowProgram, shadowFrag);
+
+    glBindFragDataLocation(shadowProgram, 0, "FragColor");
+    glLinkProgram(shadowProgram);
+    myGL::dumpProgramLog(shadowProgram);
+
+    ShadowUniformLoc.MVPMatrixLoc = glGetUniformLocation(shadowProgram, "MVPMatrix");
+    ShadowUniformLoc.vertexLoc = glGetAttribLocation(shadowProgram, "vertPosition");
 }
 
 void Aircraft::updateMVP() {
@@ -63,9 +96,16 @@ void Aircraft::updateMVP() {
 
 void Aircraft::changeSize(int w, int h) {
     if (h == 0) { h = 1; }
+
+    winW = w;
+    winH = h;
     glViewport(0, 0, w, h);
 
-    projMatObj = glm::perspective(glm::radians(45.0f), (float) w / h, 1.0f, 5000.0f);
+    cout << "Current viewport: " << w << " " << h << endl;
+
+    WinRatio = (GLfloat) w / h;
+
+    projMatObj = glm::perspective(glm::radians(45.0f), WinRatio, 1.0f, 5000.0f);
     updateMVP();
 }
 
@@ -79,13 +119,46 @@ void Aircraft::setupBuffers(const char *objFile) {
 
     glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(vertexLoc);
-    glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, 0, 0, 0);
+    glEnableVertexAttribArray(BodyUniformLoc.vertexLoc);
+    glVertexAttribPointer(BodyUniformLoc.vertexLoc, 3, GL_FLOAT, 0, 0, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffers[1]);
     glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
-    glEnableVertexAttribArray(normalLoc);
-    glVertexAttribPointer(normalLoc, 3, GL_FLOAT, 0, 0, 0);
+    glEnableVertexAttribArray(BodyUniformLoc.normalLoc);
+    glVertexAttribPointer(BodyUniformLoc.normalLoc, 3, GL_FLOAT, 0, 0, 0);
+
+    glBindVertexArray(vao[1]);
+    glGenBuffers(1, buffers);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(ShadowUniformLoc.vertexLoc);
+    glVertexAttribPointer(ShadowUniformLoc.vertexLoc, 3, GL_FLOAT, 0, 0, 0);
+
+    glUseProgram(pb);
+    glUniform1i(glGetUniformLocation(pb, "depthTexture"), 0);
+
+    glGenTextures(1, &depth_texture);
+    glBindTexture(GL_TEXTURE_2D, depth_texture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, DEPTH_TEXTURE_SIZE, DEPTH_TEXTURE_SIZE,
+                 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE,
+                    GL_COMPARE_REF_TO_TEXTURE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    glGenFramebuffers(1, &depth_fbo);
+    glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, depth_texture, 0);
+
+    glDrawBuffer(GL_NONE);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     GLuint ebo[5];
     static const GLushort vertex_indices[] = {0, 1, 2};
@@ -94,39 +167,87 @@ void Aircraft::setupBuffers(const char *objFile) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertex_indices), vertex_indices, GL_STATIC_DRAW);
 }
 
-void Aircraft::setUniforms() {
-    glUniformMatrix4fv(MVPMatrixLoc, 1, 0, &MVPMatObj[0][0]);
+void Aircraft::setupShadowMat() {
+
+}
+
+void Aircraft::setBodyUniforms() {
+    glUseProgram(pb);
+
+    glUniformMatrix4fv(BodyUniformLoc.ModelMatrixLoc, 1, 0, &modelMatObj[0][0]);
+    glUniformMatrix4fv(BodyUniformLoc.ViewMatrixLoc, 1, 0, &viewMatObj[0][0]);
+    glUniformMatrix4fv(BodyUniformLoc.ProjectionMatrixLoc, 1, 0, &projMatObj[0][0]);
+    glUniformMatrix4fv(BodyUniformLoc.MVPMatrixLoc, 1, 0, &shadowMVPMatObj[0][0]);
 
     // light param
-    glUniform3fv(AmbientLoc, 1, &Ambient[0]);
-    glUniform3fv(LightColorLoc, 1, &LightColor[0]);
-    glUniform3fv(LightDirectionLoc, 1, &LightDirection[0]);
-    glUniform3fv(HalfVectorLoc, 1, &HalfVector[0]);
-    glUniform3fv(ShininessLoc, 1, &Shininess);
-    glUniform3fv(StrengthLoc, 1, &Strength);
+    glUniform3fv(BodyUniformLoc.AmbientLoc, 1, &Ambient[0]);
+    glUniform3fv(BodyUniformLoc.LightColorLoc, 1, &LightColor[0]);
+    glUniform3fv(BodyUniformLoc.LightDirectionLoc, 1, &LightDirection[0]);
+    glUniform3fv(BodyUniformLoc.HalfVectorLoc, 1, &HalfVector[0]);
+    glUniform1f(BodyUniformLoc.ShininessLoc, Shininess);
+    glUniform1f(BodyUniformLoc.StrengthLoc, Strength);
 }
 
 void Aircraft::setCameraCoordinate() {
     glm::vec3 dir = viewDirVect * polar_r;
-    glm::vec3 fuse = glm::vec3(1, 1, 1);
 
-    LightDirection = HalfVector = viewDirVect;
+    LightDirection = normalize(glm::vec3(1.f, 1.f, 1.f));
+
+    HalfVector = glm::normalize(LightDirection + viewDirVect);
+
+    //LightDirection = HalfVector = glm::normalize(dir);
 
     viewMatObj = glm::lookAt(
             dir,
-            glm::vec3(0, 0, 0),
-            glm::vec3(0, 1, 0)
+            glm::vec3(0.f),
+            Y
     );
 
     updateMVP();
 }
 
 void Aircraft::render() {
+    glm::mat4 lightViewMatrix = glm::lookAt(LightDirection * polar_r, glm::vec3(0.f), Y),
+    lightProjectionMatrix(glm::frustum(-1.f, 1.f, -1.f, 1.f, 1.f, 5000.f)),
+            //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f)),
+    // todo !!!! change this to ortho!
+//    scaleBiasMatrix(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
+//                    glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),
+//                    glm::vec4(0.0f, 0.0f, 0.5f, 0.0f),
+//                    glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+            shadowMVPMatObj = lightProjectionMatrix * lightViewMatrix;
+
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(p);
-    setUniforms();
+    glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
+    glViewport(0, 0, DEPTH_TEXTURE_SIZE, DEPTH_TEXTURE_SIZE);
 
+    glClearDepth(1.f);
+    glClear(GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_POLYGON_OFFSET_FILL);
+    glPolygonOffset(2.f, 4.f);
+
+    glUseProgram(shadowProgram);
+
+    glUniformMatrix4fv(ShadowUniformLoc.MVPMatrixLoc, 1, 0, &shadowMVPMatObj[0][0]);
+    glBindVertexArray(vao[1]);
+    glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+
+    glDisable(GL_POLYGON_OFFSET_FILL);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    glViewport(0, 0, winW, winH);
+
+    glUseProgram(pb);
+    setBodyUniforms();
+
+    glBindTexture(GL_TEXTURE_2D, depth_texture);
+    glGenerateMipmap(GL_TEXTURE_2D);
+//
     glBindVertexArray(vao[0]);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
@@ -136,16 +257,16 @@ void Aircraft::render() {
 void Aircraft::processSpecialKeys(int key, int x, int y) {
     switch (key) {
         case GLUT_KEY_UP:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), glm::vec3(1.0, 0.0, 0.0));
+            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), X);
             break;
         case GLUT_KEY_DOWN:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), glm::vec3(1.0, 0.0, 0.0));
+            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), X);
             break;
         case GLUT_KEY_LEFT:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), glm::vec3(0.0, 1.0, 0.0));
+            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), Y);
             break;
         case GLUT_KEY_RIGHT:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), glm::vec3(0.0, 1.0, 0.0));
+            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), Y);
             break;
         default:
             break;
@@ -156,9 +277,9 @@ void Aircraft::processSpecialKeys(int key, int x, int y) {
 void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
     if (key == 27) {
         glDeleteVertexArrays(3, vao);
-        glDeleteProgram(p);
-        glDeleteShader(v);
-        glDeleteShader(f);
+        glDeleteProgram(pb);
+        glDeleteShader(vb);
+        glDeleteShader(fb);
         exit(0);
     }
 
