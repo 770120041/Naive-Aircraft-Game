@@ -8,6 +8,7 @@
 #include "../libs/myGL.h"
 
 #include <iostream>
+
 using namespace std;
 
 const glm::vec3 X = glm::vec3(1.0f, 0.f, 0.f);
@@ -24,7 +25,8 @@ public:
 
     void loadIdentity() { setCameraCoordinate(); }
 
-    void setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile, const char *fragShadowFile);
+    void setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
+                      const char *fragShadowFile);
 
     void setupBuffers(const char *objFile);
 
@@ -36,21 +38,17 @@ public:
 
     void render();
 
-    void setupShadowMat();
-
 protected:
     void updateMVP();
 
     void setBodyUniforms();
-
-    void setShadowUniforms();
 
     void setCameraCoordinate();
 
 private:
     GLuint pb, vb, fb, shadowProgram, shadowVert, shadowFrag;
 
-    struct BodyUniformLocStruct {
+    struct {
         GLint vertexLoc, normalLoc;
         GLint ModelMatrixLoc, ViewMatrixLoc, ProjectionMatrixLoc;
         GLint MVPMatrixLoc, AmbientLoc, LightColorLoc, LightDirectionLoc, HalfVectorLoc, ShininessLoc, StrengthLoc;
@@ -74,6 +72,11 @@ private:
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> uvs;
     std::vector<glm::vec3> normals; // Won't be used at the moment.
+
+    const glm::mat4 scaleBiasMatrix = glm::mat4(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
+                                                glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),
+                                                glm::vec4(0.0f, 0.0f, 0.5f, 0.0f),
+                                                glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 
     GLfloat polar_r = 2000;
 };

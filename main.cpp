@@ -13,9 +13,9 @@ void prepare() {
 
     myPlane->setupShaders("shader/jet.body.vert", "shader/jet.body.frag",
                           "shader/jet.shadow.vert", "shader/jet.shadow.frag");
-    myPlane->setupBuffers("source/airbus.obj");
-    myPlane->setupShadowMat();
+    myPlane->setupBuffers("source/787.obj");
     myPlane->loadIdentity();
+    myGL::dumpGLErrorLog();
 }
 
 void renderScene() {

@@ -22,7 +22,7 @@ out vec4 FragColor;
 
 void main() {
     vec3 N = Normal;
-    vec3 L = normalize(LightDirection * 1000.f - worldCoord);
+    vec3 L = normalize(LightDirection - worldCoord);
     vec3 R = reflect(-L, N);
     vec3 E = normalize(eyeCoord);
 

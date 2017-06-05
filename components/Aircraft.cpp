@@ -59,7 +59,6 @@ void Aircraft::setupShaders(const char *vertBodyFile, const char *fragBodyFile, 
     BodyUniformLoc.StrengthLoc = glGetUniformLocation(pb, "Strength");
 
     // new shader
-
     shadowVert = glCreateShader(GL_VERTEX_SHADER);
     shadowFrag = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -154,7 +153,7 @@ void Aircraft::setupBuffers(const char *objFile) {
     glGenFramebuffers(1, &depth_fbo);
     glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
 
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, depth_texture, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture, 0);
 
     glDrawBuffer(GL_NONE);
 
@@ -167,17 +166,14 @@ void Aircraft::setupBuffers(const char *objFile) {
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(vertex_indices), vertex_indices, GL_STATIC_DRAW);
 }
 
-void Aircraft::setupShadowMat() {
-
-}
-
 void Aircraft::setBodyUniforms() {
     glUseProgram(pb);
 
     glUniformMatrix4fv(BodyUniformLoc.ModelMatrixLoc, 1, 0, &modelMatObj[0][0]);
     glUniformMatrix4fv(BodyUniformLoc.ViewMatrixLoc, 1, 0, &viewMatObj[0][0]);
     glUniformMatrix4fv(BodyUniformLoc.ProjectionMatrixLoc, 1, 0, &projMatObj[0][0]);
-    glUniformMatrix4fv(BodyUniformLoc.MVPMatrixLoc, 1, 0, &shadowMVPMatObj[0][0]);
+
+    glUniformMatrix4fv(BodyUniformLoc.MVPMatrixLoc, 1, 0, &MVPMatObj[0][0]);
 
     // light param
     glUniform3fv(BodyUniformLoc.AmbientLoc, 1, &Ambient[0]);
@@ -191,11 +187,11 @@ void Aircraft::setBodyUniforms() {
 void Aircraft::setCameraCoordinate() {
     glm::vec3 dir = viewDirVect * polar_r;
 
-    LightDirection = normalize(glm::vec3(1.f, 1.f, 1.f));
+    LightDirection = normalize(glm::vec3(1.f, 200.f, 1.f));
 
     HalfVector = glm::normalize(LightDirection + viewDirVect);
 
-    //LightDirection = HalfVector = glm::normalize(dir);
+    LightDirection = LightDirection * polar_r;
 
     viewMatObj = glm::lookAt(
             dir,
@@ -207,20 +203,15 @@ void Aircraft::setCameraCoordinate() {
 }
 
 void Aircraft::render() {
-    glm::mat4 lightViewMatrix = glm::lookAt(LightDirection * polar_r, glm::vec3(0.f), lookAtVect),
-    lightProjectionMatrix(glm::frustum(-1.f, 1.f, -1.f, 1.f, 1.f, 5000.f)),
-            //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f)),
+    glm::mat4 lightViewMatrix = glm::lookAt(LightDirection, glm::vec3(0.f), Y),
+            lightProjectionMatrix(glm::ortho(-1500.f, 1500.f, -1500.f, 1500.f, 1000.f, 2500.f));
+    //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f));
     // todo !!!! change this to ortho!
-//    scaleBiasMatrix(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
-//                    glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),
-//                    glm::vec4(0.0f, 0.0f, 0.5f, 0.0f),
-//                    glm::vec4(0.5f, 0.5f, 0.5f, 1.0f));
 
-            shadowMVPMatObj = lightProjectionMatrix * lightViewMatrix;
+    shadowMVPMatObj = lightProjectionMatrix * lightViewMatrix;
+    MVPMatObj = scaleBiasMatrix * shadowMVPMatObj;
 
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
     glViewport(0, 0, DEPTH_TEXTURE_SIZE, DEPTH_TEXTURE_SIZE);
 
@@ -228,12 +219,13 @@ void Aircraft::render() {
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(2.f, 4.f);
+    glPolygonOffset(20.f, 40.f);
 
     glUseProgram(shadowProgram);
 
     glUniformMatrix4fv(ShadowUniformLoc.MVPMatrixLoc, 1, 0, &shadowMVPMatObj[0][0]);
     glBindVertexArray(vao[1]);
+
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
     glDisable(GL_POLYGON_OFFSET_FILL);
@@ -247,17 +239,19 @@ void Aircraft::render() {
 
     glBindTexture(GL_TEXTURE_2D, depth_texture);
     glGenerateMipmap(GL_TEXTURE_2D);
-//
+
     glBindVertexArray(vao[0]);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
     glutSwapBuffers();
+
+    myGL::dumpGLErrorLog();
+
 }
 
 void Aircraft::processSpecialKeys(int key, int x, int y) {
     glm::vec3 AxisX, AxisY(-viewDirVect.z, 0.f, viewDirVect.x), testVect;
     testVect = viewDirVect;
-    cout << testVect.x << " " << testVect.y << " " << testVect.z << endl;
     switch (key) {
         case GLUT_KEY_UP:
             viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), lookAtVect);
