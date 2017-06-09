@@ -38,6 +38,10 @@ public:
 
     void render();
 
+    void motion();
+
+    void idle();
+
 protected:
     void updateMVP();
 
@@ -72,6 +76,8 @@ private:
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> uvs;
     std::vector<glm::vec3> normals; // Won't be used at the moment.
+
+    glm::vec3 currentPos = glm::vec3(0.f), upVector = Z;
 
     const glm::mat4 scaleBiasMatrix = glm::mat4(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
                                                 glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),

@@ -187,7 +187,7 @@ void Aircraft::setBodyUniforms() {
 void Aircraft::setCameraCoordinate() {
     glm::vec3 dir = viewDirVect * polar_r;
 
-    LightDirection = normalize(glm::vec3(1.f, 200.f, 1.f));
+    LightDirection = normalize(glm::vec3(-100.f, -200.f, -100.f));
 
     HalfVector = glm::normalize(LightDirection + viewDirVect);
 
@@ -202,11 +202,29 @@ void Aircraft::setCameraCoordinate() {
     updateMVP();
 }
 
+void Aircraft::idle() {
+    upVector = glm::rotate(upVector, glm::radians(1.f), X);
+    currentPos += glm::vec3(.3f);
+}
+
+void Aircraft::motion() {
+    // todo !!! change plane pos and location to be rendered
+    glm::vec3 rotateAxis(glm::cross(Z, upVector));
+    GLfloat rotateDotProd = glm::dot(Z, glm::normalize(upVector));
+    GLfloat rotateAngle = glm::acos(rotateDotProd);
+    glm::mat4 rotateMat(1.f);
+    if (rotateAngle > 0.01) {
+        rotateMat = glm::rotate(rotateAngle, rotateAxis);
+    }
+    modelMatObj = glm::translate(currentPos) * rotateMat;
+    // todo !!! motion matrix
+}
+
 void Aircraft::render() {
     glm::mat4 lightViewMatrix = glm::lookAt(LightDirection, glm::vec3(0.f), Y),
             lightProjectionMatrix(glm::ortho(-1500.f, 1500.f, -1500.f, 1500.f, 1000.f, 2500.f));
     //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f));
-    // todo !!!! change this to ortho!
+    // todo !!!! ortho param quite strange still
 
     shadowMVPMatObj = lightProjectionMatrix * lightViewMatrix;
     MVPMatObj = scaleBiasMatrix * shadowMVPMatObj;

@@ -18,7 +18,9 @@ void prepare() {
     myGL::dumpGLErrorLog();
 }
 
-void renderScene() {
+void idleFunc() {
+    myPlane->idle();
+    myPlane->motion();
     myPlane->render();
 }
 
@@ -41,8 +43,8 @@ int main(int argc, char **argv) {
     glutInitWindowSize(1024, 768);
     glutCreateWindow("Project");
 
-    glutDisplayFunc(renderScene);
-    glutIdleFunc(renderScene);
+    glutDisplayFunc(idleFunc);
+    glutIdleFunc(idleFunc);
     glutReshapeFunc(changeSize);
     glutKeyboardFunc(processNormalKeys);
     glutSpecialFunc(processSpecialKeys);
