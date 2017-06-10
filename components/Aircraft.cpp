@@ -5,7 +5,10 @@
 #include "Aircraft.h"
 
 Aircraft::Aircraft() {
-
+    for(int i=0;i<3;i++){
+        planeVelocity[i]=0;
+        planeAcceleration[i]=0;
+    }
 }
 
 Aircraft::~Aircraft() {
@@ -203,13 +206,50 @@ void Aircraft::setCameraCoordinate() {
 }
 
 void Aircraft::idle() {
-    upVector = glm::rotate(upVector, glm::radians(1.f), X);
-    currentPos += glm::vec3(.3f);
+    GLfloat squareVelocity;
+    GLfloat deltaT = 0.0001;
+    for(int i=0;i<1000;i++){
+        currentPos[0] += planeVelocity[0] * deltaT;
+        currentPos[1] += planeVelocity[1] * deltaT;
+        currentPos[2] += planeVelocity[2] * deltaT;
+
+        planeVelocity[0] += planeAcceleration[0]  * deltaT ;
+        planeVelocity[1] += planeAcceleration[1]  * deltaT ;
+        planeVelocity[2] += planeAcceleration[2]  * deltaT ;
+
+        squareVelocity = planeVelocity[0]*planeVelocity[0]+planeVelocity[1]*planeVelocity[1]+planeVelocity[2]*planeVelocity[2];
+        airFriction[0] = -0.6 * planeVelocity[0]*sqrt(squareVelocity);
+        airFriction[1] = -0.6 * planeVelocity[1]*sqrt(squareVelocity);
+        airFriction[2] = -0.6 * planeVelocity[2]*sqrt(squareVelocity);
+
+
+        pullForce[0] = engineForce*upVector[0];
+        pullForce[1] = engineForce*upVector[1];
+        pullForce[2] = engineForce*upVector[2];
+
+
+        squareVelocity = planeVelocity[0]*planeVelocity[0]+planeVelocity[1]*planeVelocity[1]+planeVelocity[2]*planeVelocity[2];
+
+        planeAcceleration[0] =  (airFriction[0] + pullForce[0] + gravityForce[0] ) /planeWeight;
+        planeAcceleration[1] =  (airFriction[1] + pullForce[1] +  gravityForce[1]) / planeWeight;
+        planeAcceleration[2] =  (airFriction[2] + pullForce[2] + gravityForce[2]) / planeWeight;
+    }
+
+
+
+
+
+
+
+
+
+    // upVector = glm::rotate(upVector, glm::radians(1.f), X);
+    // currentPos += glm::vec3(.3f);
 }
 
 void Aircraft::motion() {
     // todo !!! change plane pos and location to be rendered
-    glm::vec3 rotateAxis(glm::cross(Z, upVector));
+    glm::vec3 rotateAxis(glm::cross(Y, upVector));
     GLfloat rotateDotProd = glm::dot(Z, glm::normalize(upVector));
     GLfloat rotateAngle = glm::acos(rotateDotProd);
     glm::mat4 rotateMat(1.f);
@@ -297,19 +337,77 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
         glDeleteShader(fb);
         exit(0);
     }
-
+    GLfloat rotateAngle =0.2*3.1415926/180;
+    GLfloat tempVector[3];
+    // double  engineForce = 9.8000001;
+    tempVector[0] = upVector[0],tempVector[1]=upVector[1],tempVector[2] = upVector[2];
     switch (key) {
-        case 'w':
-        case 'W':
-            polar_r *= 1.05;
-            break;
+
+        if (key == 27) {
+            glDeleteVertexArrays(3, vao);
+            glDeleteProgram(pb);
+            glDeleteShader(vb);
+            glDeleteShader(fb);
+            exit(0);
+        }
+        //engine star up speed
+        // case 'F':
+        // case 'f':
+        //     engineForce = 12.8;
+        //     break;
+
+        //upVector (x,y,z)
+        //X-axis rotate matrix
+        //[1 0 0] [0 cos -sin] [0 sin cos]
         case 's':
         case 'S':
+            upVector[1] = tempVector[1]*cos(rotateAngle)-tempVector[2]*sin(rotateAngle);
+            upVector[2] = tempVector[1]*sin(rotateAngle)+tempVector[2]*cos(rotateAngle);
+            break;
+        case 'W':
+        case 'w':
+            upVector[1] = tempVector[1]*cos(-rotateAngle)-tempVector[2]*sin(-rotateAngle);
+            upVector[2] = tempVector[1]*sin(-rotateAngle)+tempVector[2]*cos(-rotateAngle);
+            break;
+
+            //¥-axis rotate matrix
+            //[cos 0 sin(-)] [0 1 0] [-sin(-) 0 cos]
+
+        case 'D':
+        case 'd':
+            upVector[0] = tempVector[0]*cos(rotateAngle)+tempVector[1]*sin(-rotateAngle);
+            upVector[1] = tempVector[0]*(-1)*sin(-rotateAngle)+tempVector[1]*cos(rotateAngle);
+
+            break;
+
+        case 'A':
+        case 'a':
+            upVector[0] = tempVector[0]*cos(-rotateAngle)+tempVector[1]*sin(rotateAngle);
+            upVector[1] = tempVector[0]*(-1)*sin(rotateAngle)+tempVector[1]*cos(-rotateAngle);
+
+            break;
+
+        case '[':
+            engineForce +=20;
+            break;
+
+        case ']':
+            engineForce -=20;
+            break;
+
+        case 'I':
+        case 'i':
+            polar_r *= 1.05;
+            break;
+        case 'K':
+        case 'k':
             polar_r /= 1.05;
             break;
         default:
             break;
     }
+
+
 
     setCameraCoordinate();
 }

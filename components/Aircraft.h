@@ -69,7 +69,7 @@ private:
 
     GLint winW, winH;
 
-    glm::vec3 viewDirVect = X, lookAtVect = Y;
+    glm::vec3 viewDirVect = glm::vec3(0.0f, 0.5f, -1.2f), lookAtVect = Y;
 
     glm::mat4 modelMatObj = glm::mat4(1.f), viewMatObj, projMatObj, MVPMatObj, shadowMVPMatObj;
 
@@ -78,6 +78,16 @@ private:
     std::vector<glm::vec3> normals; // Won't be used at the moment.
 
     glm::vec3 currentPos = glm::vec3(0.f), upVector = Z;
+
+    const GLfloat planeWeight = 1;
+    GLfloat engineForce = 9.800000;
+
+    GLfloat planeAcceleration[3];
+    GLfloat planeVelocity[3];
+    GLfloat pullForce[3];
+    GLfloat airFriction[3];
+    GLfloat gravityForce[3]={0,0,-9.8};
+
 
     const glm::mat4 scaleBiasMatrix = glm::mat4(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
                                                 glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),
