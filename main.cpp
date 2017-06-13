@@ -15,7 +15,7 @@ void prepare() {
                           "shader/jet.shadow.vert", "shader/jet.shadow.frag");
     myPlane->setupBuffers("source/", "myplane.obj");
     myPlane->loadIdentity();
-    //myGL::dumpGLErrorLog();
+    myGL::dumpGLErrorLog();
 }
 
 void idleFunc() {

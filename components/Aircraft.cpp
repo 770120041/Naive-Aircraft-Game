@@ -218,7 +218,7 @@ void Aircraft::setBodyUniforms() {
 void Aircraft::setCameraCoordinate() {
     glm::vec3 dir = viewDirVect * polar_r;
 
-    LightDirection = normalize(glm::vec3(-100.f, -200.f, -100.f));
+    LightDirection = normalize(glm::vec3(100.f, 200.f, 100.f));
 
     HalfVector = glm::normalize(LightDirection + viewDirVect);
 

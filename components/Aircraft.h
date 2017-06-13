@@ -61,7 +61,7 @@ private:
     } BodyUniformLoc, ShadowUniformLoc;
 
     glm::vec3 Ambient = glm::vec3(0.4f), LightColor = glm::vec3(1.0f), LightDirection, HalfVector;
-    GLfloat Shininess = 1.0f, Strength = 5.0f;
+    GLfloat Shininess = 1.f, Strength = 5.0f;
 
     GLuint vao[3];
 
