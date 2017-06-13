@@ -48,6 +48,7 @@ void Aircraft::setupShaders(const char *vertBodyFile, const char *fragBodyFile, 
 
     BodyUniformLoc.vertexLoc = glGetAttribLocation(pb, "vertPosition");
     BodyUniformLoc.normalLoc = glGetAttribLocation(pb, "vertNormal");
+    BodyUniformLoc.idLoc = glGetAttribLocation(pb, "materialId");
 
     BodyUniformLoc.ModelMatrixLoc = glGetUniformLocation(pb, "modelMatrix");
     BodyUniformLoc.ViewMatrixLoc = glGetUniformLocation(pb, "viewMatrix");
@@ -111,13 +112,13 @@ void Aircraft::changeSize(int w, int h) {
     updateMVP();
 }
 
-void Aircraft::setupBuffers(const char *objFile) {
-    myGL::loadObj(objFile, vertices, uvs, normals);
+void Aircraft::setupBuffers(const char *objPath, const char *objFile) {
+    myGL::loadObj(objPath, objFile, vertices, uvs, normals, materials, material_ids);
 
-    GLuint buffers[2];
+    GLuint buffers[3];
     glGenVertexArrays(3, vao);
     glBindVertexArray(vao[0]);
-    glGenBuffers(2, buffers);
+    glGenBuffers(3, buffers);
 
     glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
@@ -128,6 +129,12 @@ void Aircraft::setupBuffers(const char *objFile) {
     glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
     glEnableVertexAttribArray(BodyUniformLoc.normalLoc);
     glVertexAttribPointer(BodyUniformLoc.normalLoc, 3, GL_FLOAT, 0, 0, 0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, buffers[2]);
+    glBufferData(GL_ARRAY_BUFFER, material_ids.size() * sizeof(GLfloat), &material_ids[0], GL_STATIC_DRAW);
+    glEnableVertexAttribArray(BodyUniformLoc.idLoc);
+    glVertexAttribPointer(BodyUniformLoc.idLoc, 1, GL_FLOAT, 0, 0, 0);
+
 
     glBindVertexArray(vao[1]);
     glGenBuffers(1, buffers);
@@ -177,6 +184,27 @@ void Aircraft::setBodyUniforms() {
     glUniformMatrix4fv(BodyUniformLoc.ProjectionMatrixLoc, 1, 0, &projMatObj[0][0]);
 
     glUniformMatrix4fv(BodyUniformLoc.MVPMatrixLoc, 1, 0, &MVPMatObj[0][0]);
+
+    for (int i=0; i<materials.size(); i++) {
+        std::string materialId;
+        materialId = "Ka[";
+        materialId += std::to_string(i);
+        materialId += "]";
+        glUniform3fv(glGetUniformLocation(pb, materialId.c_str()), 1,
+                     glm::value_ptr(materials[i].Ka));
+
+        materialId = "Kd[";
+        materialId += std::to_string(i);
+        materialId += "]";
+        glUniform3fv(glGetUniformLocation(pb, materialId.c_str()), 1,
+                     glm::value_ptr(materials[i].Kd));
+
+        materialId = "Ks[";
+        materialId += std::to_string(i);
+        materialId += "]";
+        glUniform3fv(glGetUniformLocation(pb, materialId.c_str()), 1,
+                     glm::value_ptr(materials[i].Ks));
+    }
 
     // light param
     glUniform3fv(BodyUniformLoc.AmbientLoc, 1, &Ambient[0]);
@@ -288,6 +316,7 @@ void Aircraft::render() {
 
     glDisable(GL_POLYGON_OFFSET_FILL);
 
+    // return to GLUT frame
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     glViewport(0, 0, winW, winH);

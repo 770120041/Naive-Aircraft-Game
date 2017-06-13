@@ -28,7 +28,7 @@ public:
     void setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
                       const char *fragShadowFile);
 
-    void setupBuffers(const char *objFile);
+    void setupBuffers(const char *objPath, const char *objFile);
 
     void processSpecialKeys(int key, int x, int y);
 
@@ -54,12 +54,14 @@ private:
 
     struct {
         GLint vertexLoc, normalLoc;
-        GLint ModelMatrixLoc, ViewMatrixLoc, ProjectionMatrixLoc;
-        GLint MVPMatrixLoc, AmbientLoc, LightColorLoc, LightDirectionLoc, HalfVectorLoc, ShininessLoc, StrengthLoc;
+        GLint ModelMatrixLoc, ViewMatrixLoc, ProjectionMatrixLoc, MVPMatrixLoc;
+        GLint KaLoc, KdLoc, KsLoc;
+        GLint idLoc;
+        GLint AmbientLoc, LightColorLoc, LightDirectionLoc, HalfVectorLoc, ShininessLoc, StrengthLoc;
     } BodyUniformLoc, ShadowUniformLoc;
 
     glm::vec3 Ambient = glm::vec3(0.4f), LightColor = glm::vec3(1.0f), LightDirection, HalfVector;
-    GLfloat Shininess = 1.0f, Strength = 10.0f;
+    GLfloat Shininess = 1.0f, Strength = 5.0f;
 
     GLuint vao[3];
 
@@ -76,6 +78,10 @@ private:
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> uvs;
     std::vector<glm::vec3> normals; // Won't be used at the moment.
+
+    std::vector<MyGLMaterial> materials;
+    std::vector<int> material_mapper;
+    std::vector<GLfloat> material_ids;
 
     glm::vec3 currentPos = glm::vec3(0.f), upVector = Z;
 

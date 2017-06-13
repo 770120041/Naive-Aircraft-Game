@@ -1,5 +1,7 @@
 #version 410 core
 
+#define minimalDiffuse 0.3f
+
 uniform sampler2DShadow depthTexture;
 
 uniform vec3 Ambient;
@@ -10,7 +12,9 @@ uniform vec3 HalfVector;
 uniform float Shininess;
 uniform float Strength;
 
-in vec4 Color;
+in vec3 KaColor;
+in vec3 KdColor;
+in vec3 KsColor;
 
 in vec4 shadowCoord;
 in vec3 worldCoord;
@@ -33,5 +37,7 @@ void main() {
     float specular = max(pow(EdotR, Shininess), 0.f);
     float f = textureProj(depthTexture, shadowCoord);
 
-    FragColor = vec4(vec3(Color) + f * (.2f * diffuse + .2f * specular), 1.f);
+    if (f < minimalDiffuse) { f = minimalDiffuse; }
+
+    FragColor = vec4(KaColor + f * ( KdColor * diffuse + KsColor * specular), 1.f);
 }

@@ -4,6 +4,8 @@
 
 #include "myGL.h"
 
+#include <iostream>
+
 std::string myGL::readShader(const char *filename) {
     std::ifstream in(filename);
     std::stringstream sStr;
@@ -11,16 +13,72 @@ std::string myGL::readShader(const char *filename) {
     return sStr.str();
 }
 
-bool myGL::loadObj(const char *path, std::vector<glm::vec3> &out_vertices, std::vector<glm::vec3> &out_uvs,
-                   std::vector<glm::vec3> &out_normals) {
+bool myGL::loadMaterial(const char *path, const char *fileName, std::vector<MyGLMaterial> &out_materials) {
+    MyGLMaterial temp;
+    bool hasMaterial = false;
+    char tempName[200];
+    std::string filePath(path);
+    filePath += fileName;
+
+    FILE *file = fopen(filePath.c_str(), "r");
+    if (file == NULL) {
+        printf("Failed to open the file in `%s`!\n", filePath.c_str());
+        return false;
+    }
+
+    while (true) {
+        char lineHeader[128];
+        int res = fscanf(file, "%s", lineHeader);
+        if (res == EOF) { break; }
+
+        if (strcmp(lineHeader, "newmtl") == 0) {
+            if (!hasMaterial) {
+                hasMaterial = true;
+            } else {
+                out_materials.push_back(temp);
+            }
+            temp.clear();
+            fscanf(file, "%s\n", tempName);
+            temp.materialName = tempName;
+        } else if (strcmp(lineHeader, "Ns") == 0) {
+            fscanf(file, "%f\n", &temp.Ns);
+        } else if (strcmp(lineHeader, "d") == 0) {
+            fscanf(file, "%f\n", &temp.d);
+        } else if (strcmp(lineHeader, "Tr") == 0) {
+            fscanf(file, "%f\n", &temp.Tr);
+        } else if (strcmp(lineHeader, "Tf") == 0) {
+            fscanf(file, "%f %f %f\n", &temp.Tf.x, &temp.Tf.y, &temp.Tf.z);
+        } else if (strcmp(lineHeader, "illum") == 0) {
+            fscanf(file, "%d\n", &temp.illum);
+        } else if (strcmp(lineHeader, "Ka") == 0) {
+            fscanf(file, "%f %f %f\n", &temp.Ka.x, &temp.Ka.y, &temp.Ka.z);
+        } else if (strcmp(lineHeader, "Kd") == 0) {
+            fscanf(file, "%f %f %f\n", &temp.Kd.x, &temp.Kd.y, &temp.Kd.z);
+        } else if (strcmp(lineHeader, "Ks") == 0) {
+            fscanf(file, "%f %f %f\n", &temp.Ks.x, &temp.Ks.y, &temp.Ks.z);
+        } else {
+            while (fgetc(file) != '\n');
+        }
+    }
+
+    if (hasMaterial) { out_materials.push_back(temp); }
+    return true;
+}
+
+bool myGL::loadObj(const char *path, const char *fileName, std::vector<glm::vec3> &out_vertices, std::vector<glm::vec3> &out_uvs,
+                   std::vector<glm::vec3> &out_normals, std::vector<MyGLMaterial> &out_materials, std::vector<GLfloat> &out_material_ids) {
     std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
     std::vector<glm::vec3> temp_vertices;
     std::vector<glm::vec3> temp_uvs;
     std::vector<glm::vec3> temp_normals;
+    std::string filePath(path);
+    filePath += fileName;
 
-    FILE *file = fopen(path, "r");
+    GLfloat currentMaterialId = 0;
+
+    FILE *file = fopen(filePath.c_str(), "r");
     if (file == NULL) {
-        printf("Failed to open the file in `%s`!\n", path);
+        printf("Failed to open the file in `%s`!\n", filePath.c_str());
         return false;
     }
 
@@ -66,6 +124,9 @@ bool myGL::loadObj(const char *path, std::vector<glm::vec3> &out_vertices, std::
                     normalIndices.push_back(normalIndex[0]);
                     normalIndices.push_back(normalIndex[1]);
                     normalIndices.push_back(normalIndex[2]);
+                    for (int i=0; i<3; i++) {
+                        out_material_ids.push_back(currentMaterialId);
+                    }
                 }
             } else {
                 vertexIndices.push_back(vertexIndex[0]);
@@ -87,11 +148,35 @@ bool myGL::loadObj(const char *path, std::vector<glm::vec3> &out_vertices, std::
                 normalIndices.push_back(normalIndex[0]);
                 normalIndices.push_back(normalIndex[2]);
                 normalIndices.push_back(normalIndex[3]);
+
+                for (int i=0; i<6; i++) {
+                    out_material_ids.push_back(currentMaterialId);
+                }
+
             }
+        } else if (strcmp(lineHeader, "mtllib") == 0) {
+            char mtlFile[200];
+            fscanf(file, "%s\n", mtlFile);
+            loadMaterial(path, mtlFile, out_materials);
+        } else if (strcmp(lineHeader, "usemtl") == 0) {
+            char mtl[200];
+            fscanf(file, "%s\n", mtl);
+            bool flag = true;
+            for (int i=0; i<out_materials.size(); i++) {
+                if (mtl == out_materials[i].materialName) {
+                    currentMaterialId = i;
+                    flag = false;
+                    break;
+                }
+            }
+            if (flag) { exit(-1); }
         } else {
             while (fgetc(file) != '\n');
         }
     }
+
+    // last vertex
+    //out_material_mapper.push_back(vertexIndices.size());
 
     for (unsigned int i = 0; i < vertexIndices.size(); i++) {
         unsigned int vertexIndex = vertexIndices[i];

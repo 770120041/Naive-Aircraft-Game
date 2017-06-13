@@ -11,12 +11,29 @@
 #include <sstream>
 #include <vector>
 
+struct MyGLMaterial {
+    void clear() {
+        materialName = "";
+        Ns = d = Tr = 0.f;
+        Tf = glm::vec3(1.f);
+        illum = 0;
+        Ka = Kd = Ks = glm::vec3(0.f);
+    }
+    std::string materialName;
+    GLfloat Ns, d, Tr;
+    glm::vec3 Tf;
+    GLint illum;
+    glm::vec3 Ka, Kd, Ks;
+};
+
 class myGL {
 public:
     static std::string readShader(const char *filename);
 
-    static bool loadObj(const char *path, std::vector<glm::vec3> &out_vertices, std::vector<glm::vec3> &out_uvs,
-                        std::vector<glm::vec3> &out_normals);
+    static bool loadObj(const char *path, const char *fileName, std::vector<glm::vec3> &out_vertices, std::vector<glm::vec3> &out_uvs,
+                        std::vector<glm::vec3> &out_normals, std::vector<MyGLMaterial> &out_materials, std::vector<GLfloat> &out_material_ids);
+
+    static bool loadMaterial(const char *path, const char *fileName, std::vector<MyGLMaterial> &out_materials);
 
     static void dumpShaderLog(GLuint obj);
 
