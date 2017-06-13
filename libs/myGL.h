@@ -35,6 +35,8 @@ public:
 
     static bool loadMaterial(const char *path, const char *fileName, std::vector<MyGLMaterial> &out_materials);
 
+    static GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path);
+
     static void dumpShaderLog(GLuint obj);
 
     static void dumpProgramLog(GLuint obj);

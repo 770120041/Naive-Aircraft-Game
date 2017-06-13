@@ -14,6 +14,8 @@ void prepare() {
     myPlane->setupShaders("shader/jet.body.vert", "shader/jet.body.frag",
                           "shader/jet.shadow.vert", "shader/jet.shadow.frag");
     myPlane->setupBuffers("source/", "myplane.obj");
+    myPlane->setupSkyBox("shader/cube.vert.glsl","shader/cube.frag.glsl");
+
     myPlane->loadIdentity();
     myGL::dumpGLErrorLog();
 }
@@ -36,6 +38,10 @@ void processNormalKeys(unsigned char key, int x, int y) {
     myPlane->processNormalKeys(key, x, y);
 }
 
+void onMouseMove(int x,int y){
+    myPlane->processMouseMotion(x,y);
+}
+
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -48,6 +54,7 @@ int main(int argc, char **argv) {
     glutReshapeFunc(changeSize);
     glutKeyboardFunc(processNormalKeys);
     glutSpecialFunc(processSpecialKeys);
+    glutMotionFunc(onMouseMove);
 
     glewInit();
     if (glewIsSupported("GL_VERSION_4_1"))

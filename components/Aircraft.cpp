@@ -8,11 +8,34 @@ Aircraft::Aircraft() {
     for(int i=0;i<3;i++){
         planeVelocity[i]=0;
         planeAcceleration[i]=0;
+        cameraFront[i]=0;
     }
+    setCameraCoordinate();
 }
 
 Aircraft::~Aircraft() {
 
+}
+
+void Aircraft::setupSkyBox(const char *skyShadervs, const char *skyShaderfs) {
+    SkyBox::skybox_buffer(skyboxVAO, skyboxVBO);
+
+    //sky box
+
+
+    //read texture
+    std::vector<std::string> faces
+            {
+                    "./texture/right.jpg",
+                    "./texture/left.jpg",
+                    "./texture/top.jpg",
+                    "./texture/bottom.jpg",
+                    "./texture/back.jpg",
+                    "./texture/front.jpg"
+            };
+    cubemapTexture = SkyBox::loadCubemap(faces);
+
+    skyShader = myGL::LoadShaders(skyShadervs,skyShaderfs);
 }
 
 void Aircraft::setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
@@ -216,19 +239,31 @@ void Aircraft::setBodyUniforms() {
 }
 
 void Aircraft::setCameraCoordinate() {
-    glm::vec3 dir = viewDirVect * polar_r;
+    dir = viewDirVect * polar_r;
 
-    LightDirection = normalize(glm::vec3(100.f, 200.f, 100.f));
+    LightDirection = normalize(glm::vec3(-100.f, -200.f, -100.f));
 
     HalfVector = glm::normalize(LightDirection + viewDirVect);
 
     LightDirection = LightDirection * polar_r;
 
-    viewMatObj = glm::lookAt(
-            dir,
-            glm::vec3(0.f),
-            lookAtVect
-    );
+    dir += currentPos;
+    if(stopCameraTracing){
+        viewMatObj = glm::lookAt(
+                lastPosition,
+                lastPosition+cameraFront,
+                lookAtVect
+        );
+
+    }
+    else{
+        viewMatObj = glm::lookAt(
+                dir,
+                dir+cameraFront,
+                lookAtVect
+        );
+    }
+
 
     updateMVP();
 }
@@ -262,12 +297,9 @@ void Aircraft::idle() {
         planeAcceleration[1] =  (airFriction[1] + pullForce[1] +  gravityForce[1]) / planeWeight;
         planeAcceleration[2] =  (airFriction[2] + pullForce[2] + gravityForce[2]) / planeWeight;
     }
+    //    printf("up x y z at %.3f %.3f %.3f\n",upVector[0],upVector[1],upVector[2]);
 
-
-
-
-
-
+    setCameraCoordinate();
 
 
 
@@ -281,7 +313,7 @@ void Aircraft::motion() {
     GLfloat rotateDotProd = glm::dot(Z, glm::normalize(upVector));
     GLfloat rotateAngle = glm::acos(rotateDotProd);
     glm::mat4 rotateMat(1.f);
-    if (rotateAngle > 0.01) {
+    if (rotateAngle > 0.01f) {
         rotateMat = glm::rotate(rotateAngle, rotateAxis);
     }
     modelMatObj = glm::translate(currentPos) * rotateMat;
@@ -330,6 +362,14 @@ void Aircraft::render() {
     glBindVertexArray(vao[0]);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
 
+    //sky box
+    glUseProgram(skyShader);
+    glm::mat4 view = glm::mat4(glm::mat3(viewMatObj));
+    glUniformMatrix4fv(glGetUniformLocation(skyShader, "view"), 1, GL_FALSE, glm::value_ptr(view));
+    glUniformMatrix4fv(glGetUniformLocation(skyShader, "projection"), 1, GL_FALSE, glm::value_ptr(projMatObj));
+    SkyBox::render_skybox(skyboxVAO, cubemapTexture);
+    //end of skybox
+
     glutSwapBuffers();
 
     myGL::dumpGLErrorLog();
@@ -372,13 +412,7 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
     tempVector[0] = upVector[0],tempVector[1]=upVector[1],tempVector[2] = upVector[2];
     switch (key) {
 
-        if (key == 27) {
-            glDeleteVertexArrays(3, vao);
-            glDeleteProgram(pb);
-            glDeleteShader(vb);
-            glDeleteShader(fb);
-            exit(0);
-        }
+
         //engine star up speed
         // case 'F':
         // case 'f':
@@ -388,6 +422,47 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
         //upVector (x,y,z)
         //X-axis rotate matrix
         //[1 0 0] [0 cos -sin] [0 sin cos]
+        case 'H':
+        case 'h':
+            lastPosition = dir;
+            stopCameraTracing = !stopCameraTracing;
+            break;
+        case 'I':
+        case 'i':
+            if(stopCameraTracing){
+                lastPosition[2] += 30;
+            }
+            break;
+        case 'K':
+        case 'k':
+            if(stopCameraTracing){
+                lastPosition[2] -= 30;
+            }
+            break;
+        case 'O':
+        case 'o':
+            if(stopCameraTracing){
+                lastPosition[1] -= 30;
+            }
+            break;
+        case 'U':
+        case 'u':
+            if(stopCameraTracing){
+                lastPosition[1] += 30;
+            }
+            break;
+        case 'J':
+        case 'j':
+            if(stopCameraTracing){
+                lastPosition[0] += 30;
+            }
+            break;
+        case 'L':
+        case 'l':
+            if(stopCameraTracing){
+                lastPosition[0] -= 30;
+            }
+            break;
         case 's':
         case 'S':
             upVector[1] = tempVector[1]*cos(rotateAngle)-tempVector[2]*sin(rotateAngle);
@@ -424,19 +499,55 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
             engineForce -=20;
             break;
 
-        case 'I':
-        case 'i':
+        case 'Z':
+        case 'z':
             polar_r *= 1.05;
             break;
-        case 'K':
-        case 'k':
+        case 'X':
+        case 'x':
             polar_r /= 1.05;
             break;
         default:
             break;
     }
 
+    setCameraCoordinate();
+}
 
+void Aircraft::processMouseMotion(int xpos, int ypos) {
+    if(firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        Pitch = 0;
+        Yaw = -90;
+        firstMouse = false;
+    }
+    cout<<"x pos "<<xpos<<"y pos"<<ypos<<endl;
+    cout<<"YAW = "<<Yaw<<" Pitch = "<<Pitch<<endl;
+    cout<<"cameraFront="<<cameraFront[0]<<" "<<cameraFront[1]<<" "<<cameraFront[2]<<endl;
+    cout<<endl;
+    GLfloat xoffset = xpos - lastX;
+    GLfloat yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
 
+    GLfloat sensitivity = 0.5;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
+
+    Yaw   += xoffset;
+    Pitch += yoffset;
+
+    if(Pitch > 89.0)
+        Pitch = 89.0;
+    if(Pitch < -89.0)
+        Pitch = -89.0;
+
+    glm::vec3 front;
+    front.x = cos(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    front.y = sin(glm::radians(Pitch));
+    front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
+    cameraFront = glm::normalize(front);
     setCameraCoordinate();
 }

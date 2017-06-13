@@ -6,7 +6,7 @@
 #define MEGAPROJECT_AIRCRAFT_H
 
 #include "../libs/myGL.h"
-
+#include "SkyBox.h"
 #include <iostream>
 
 using namespace std;
@@ -28,11 +28,15 @@ public:
     void setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
                       const char *fragShadowFile);
 
+    void setupSkyBox(const char *skyShadervs,const char *skyShaderfs);
+
     void setupBuffers(const char *objPath, const char *objFile);
 
     void processSpecialKeys(int key, int x, int y);
 
     void processNormalKeys(unsigned char key, int x, int y);
+
+    void processMouseMotion(int xpos,int  ypos);
 
     void changeSize(int w, int h);
 
@@ -51,6 +55,20 @@ protected:
 
 private:
     GLuint pb, vb, fb, shadowProgram, shadowVert, shadowFrag;
+
+    //mouse motion
+    glm::vec3 lastPosition;
+    glm::vec3 dir;
+    bool stopCameraTracing = false;
+    bool firstMouse = true;
+    double lastX,lastY,Pitch,Yaw;
+    //end of mousemotion
+
+    //sky box
+    GLuint skyShader;
+    GLuint cubemapTexture;
+    GLuint skyboxVAO, skyboxVBO;
+    //end of sky box
 
     struct {
         GLint vertexLoc, normalLoc;
@@ -73,6 +91,8 @@ private:
 
     glm::vec3 viewDirVect = glm::vec3(0.0f, 0.5f, -1.2f), lookAtVect = Y;
 
+    glm::vec3 cameraFront;
+
     glm::mat4 modelMatObj = glm::mat4(1.f), viewMatObj, projMatObj, MVPMatObj, shadowMVPMatObj;
 
     std::vector<glm::vec3> vertices;
@@ -92,8 +112,7 @@ private:
     GLfloat planeVelocity[3];
     GLfloat pullForce[3];
     GLfloat airFriction[3];
-    GLfloat gravityForce[3]={0,0,-9.8};
-
+    GLfloat gravityForce[3]={0,0, -9.8f};
 
     const glm::mat4 scaleBiasMatrix = glm::mat4(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
                                                 glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),
