@@ -17,6 +17,7 @@ void prepare() {
     myPlane->setupSkyBox("shader/cube.vert.glsl","shader/cube.frag.glsl");
 
     myPlane->loadIdentity();
+    myPlane->processMouseMotion(0, 0);
     myGL::dumpGLErrorLog();
 }
 
@@ -42,6 +43,10 @@ void onMouseMove(int x,int y){
     myPlane->processMouseMotion(x,y);
 }
 
+void onMouseAction(int button, int state, int x, int y) {
+    myPlane->processMouseAction(button, state, x, y);
+}
+
 int main(int argc, char **argv) {
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_3_2_CORE_PROFILE | GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
@@ -55,6 +60,7 @@ int main(int argc, char **argv) {
     glutKeyboardFunc(processNormalKeys);
     glutSpecialFunc(processSpecialKeys);
     glutMotionFunc(onMouseMove);
+    glutMouseFunc(onMouseAction);
 
     glewInit();
     if (glewIsSupported("GL_VERSION_4_1"))

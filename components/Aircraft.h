@@ -38,6 +38,8 @@ public:
 
     void processMouseMotion(int xpos,int  ypos);
 
+    void processMouseAction(int button, int state, int x, int y);
+
     void changeSize(int w, int h);
 
     void render();
@@ -60,8 +62,8 @@ private:
     glm::vec3 lastPosition;
     glm::vec3 dir;
     bool stopCameraTracing = false;
-    bool firstMouse = true;
-    double lastX,lastY,Pitch,Yaw;
+    bool resetPos = true;
+    double lastX,lastY,Pitch = 0,Yaw = -90;
     //end of mousemotion
 
     //sky box
@@ -91,7 +93,7 @@ private:
 
     glm::vec3 viewDirVect = glm::vec3(0.0f, 0.5f, -1.2f), lookAtVect = Y;
 
-    glm::vec3 cameraFront;
+    glm::vec3 cameraFront = Z;
 
     glm::mat4 modelMatObj = glm::mat4(1.f), viewMatObj, projMatObj, MVPMatObj, shadowMVPMatObj;
 

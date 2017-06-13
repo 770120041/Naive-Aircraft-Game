@@ -8,7 +8,6 @@ Aircraft::Aircraft() {
     for(int i=0;i<3;i++){
         planeVelocity[i]=0;
         planeAcceleration[i]=0;
-        cameraFront[i]=0;
     }
     setCameraCoordinate();
 }
@@ -514,21 +513,21 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
     setCameraCoordinate();
 }
 
+void Aircraft::processMouseAction(int button, int state, int x, int y) {
+    if (state == GLUT_DOWN && button == GLUT_LEFT_BUTTON) {
+        resetPos = true;
+    }
+}
+
 void Aircraft::processMouseMotion(int xpos, int ypos) {
-    if(firstMouse)
-    {
+    if (resetPos) {
         lastX = xpos;
         lastY = ypos;
-        Pitch = 0;
-        Yaw = -90;
-        firstMouse = false;
+        resetPos = false;
     }
-    cout<<"x pos "<<xpos<<"y pos"<<ypos<<endl;
-    cout<<"YAW = "<<Yaw<<" Pitch = "<<Pitch<<endl;
-    cout<<"cameraFront="<<cameraFront[0]<<" "<<cameraFront[1]<<" "<<cameraFront[2]<<endl;
-    cout<<endl;
     GLfloat xoffset = xpos - lastX;
     GLfloat yoffset = lastY - ypos;
+    cout << xoffset << " " << yoffset << endl;
     lastX = xpos;
     lastY = ypos;
 
