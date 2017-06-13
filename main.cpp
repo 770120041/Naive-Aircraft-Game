@@ -14,7 +14,7 @@ void prepare() {
     myPlane->setupShaders("shader/jet.body.vert", "shader/jet.body.frag",
                           "shader/jet.shadow.vert", "shader/jet.shadow.frag");
     myPlane->setupBuffers("source/", "myplane.obj");
-    myPlane->setupSkyBox("shader/cube.vert.glsl","shader/cube.frag.glsl");
+    myPlane->setupSkyBox("shader/cube.vert.glsl", "shader/cube.frag.glsl");
 
     myPlane->loadIdentity();
     myPlane->processMouseMotion(0, 0);
@@ -39,8 +39,8 @@ void processNormalKeys(unsigned char key, int x, int y) {
     myPlane->processNormalKeys(key, x, y);
 }
 
-void onMouseMove(int x,int y){
-    myPlane->processMouseMotion(x,y);
+void onMouseMove(int x, int y) {
+    myPlane->processMouseMotion(x, y);
 }
 
 void onMouseAction(int button, int state, int x, int y) {

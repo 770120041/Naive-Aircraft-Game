@@ -5,9 +5,9 @@
 #include "Aircraft.h"
 
 Aircraft::Aircraft() {
-    for(int i=0;i<3;i++){
-        planeVelocity[i]=0;
-        planeAcceleration[i]=0;
+    for (int i = 0; i < 3; i++) {
+        planeVelocity[i] = 0;
+        planeAcceleration[i] = 0;
     }
     setCameraCoordinate();
 }
@@ -34,7 +34,7 @@ void Aircraft::setupSkyBox(const char *skyShadervs, const char *skyShaderfs) {
             };
     cubemapTexture = SkyBox::loadCubemap(faces);
 
-    skyShader = myGL::LoadShaders(skyShadervs,skyShaderfs);
+    skyShader = myGL::LoadShaders(skyShadervs, skyShaderfs);
 }
 
 void Aircraft::setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
@@ -207,7 +207,7 @@ void Aircraft::setBodyUniforms() {
 
     glUniformMatrix4fv(BodyUniformLoc.MVPMatrixLoc, 1, 0, &MVPMatObj[0][0]);
 
-    for (int i=0; i<materials.size(); i++) {
+    for (int i = 0; i < materials.size(); i++) {
         std::string materialId;
         materialId = "Ka[";
         materialId += std::to_string(i);
@@ -247,18 +247,17 @@ void Aircraft::setCameraCoordinate() {
     LightDirection = LightDirection * polar_r;
 
     dir += currentPos;
-    if(stopCameraTracing){
+    if (stopCameraTracing) {
         viewMatObj = glm::lookAt(
                 lastPosition,
-                lastPosition+cameraFront,
+                lastPosition + cameraFront,
                 lookAtVect
         );
 
-    }
-    else{
+    } else {
         viewMatObj = glm::lookAt(
                 dir,
-                dir+cameraFront,
+                dir + cameraFront,
                 lookAtVect
         );
     }
@@ -270,31 +269,33 @@ void Aircraft::setCameraCoordinate() {
 void Aircraft::idle() {
     GLfloat squareVelocity;
     GLfloat deltaT = 0.0001;
-    for(int i=0;i<1000;i++){
+    for (int i = 0; i < 1000; i++) {
         currentPos[0] += planeVelocity[0] * deltaT;
         currentPos[1] += planeVelocity[1] * deltaT;
         currentPos[2] += planeVelocity[2] * deltaT;
 
-        planeVelocity[0] += planeAcceleration[0]  * deltaT ;
-        planeVelocity[1] += planeAcceleration[1]  * deltaT ;
-        planeVelocity[2] += planeAcceleration[2]  * deltaT ;
+        planeVelocity[0] += planeAcceleration[0] * deltaT;
+        planeVelocity[1] += planeAcceleration[1] * deltaT;
+        planeVelocity[2] += planeAcceleration[2] * deltaT;
 
-        squareVelocity = planeVelocity[0]*planeVelocity[0]+planeVelocity[1]*planeVelocity[1]+planeVelocity[2]*planeVelocity[2];
-        airFriction[0] = -0.6 * planeVelocity[0]*sqrt(squareVelocity);
-        airFriction[1] = -0.6 * planeVelocity[1]*sqrt(squareVelocity);
-        airFriction[2] = -0.6 * planeVelocity[2]*sqrt(squareVelocity);
-
-
-        pullForce[0] = engineForce*upVector[0];
-        pullForce[1] = engineForce*upVector[1];
-        pullForce[2] = engineForce*upVector[2];
+        squareVelocity = planeVelocity[0] * planeVelocity[0] + planeVelocity[1] * planeVelocity[1] +
+                         planeVelocity[2] * planeVelocity[2];
+        airFriction[0] = -0.6 * planeVelocity[0] * sqrt(squareVelocity);
+        airFriction[1] = -0.6 * planeVelocity[1] * sqrt(squareVelocity);
+        airFriction[2] = -0.6 * planeVelocity[2] * sqrt(squareVelocity);
 
 
-        squareVelocity = planeVelocity[0]*planeVelocity[0]+planeVelocity[1]*planeVelocity[1]+planeVelocity[2]*planeVelocity[2];
+        pullForce[0] = engineForce * upVector[0];
+        pullForce[1] = engineForce * upVector[1];
+        pullForce[2] = engineForce * upVector[2];
 
-        planeAcceleration[0] =  (airFriction[0] + pullForce[0] + gravityForce[0] ) /planeWeight;
-        planeAcceleration[1] =  (airFriction[1] + pullForce[1] +  gravityForce[1]) / planeWeight;
-        planeAcceleration[2] =  (airFriction[2] + pullForce[2] + gravityForce[2]) / planeWeight;
+
+        squareVelocity = planeVelocity[0] * planeVelocity[0] + planeVelocity[1] * planeVelocity[1] +
+                         planeVelocity[2] * planeVelocity[2];
+
+        planeAcceleration[0] = (airFriction[0] + pullForce[0] + gravityForce[0]) / planeWeight;
+        planeAcceleration[1] = (airFriction[1] + pullForce[1] + gravityForce[1]) / planeWeight;
+        planeAcceleration[2] = (airFriction[2] + pullForce[2] + gravityForce[2]) / planeWeight;
     }
     //    printf("up x y z at %.3f %.3f %.3f\n",upVector[0],upVector[1],upVector[2]);
 
@@ -405,10 +406,10 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
         glDeleteShader(fb);
         exit(0);
     }
-    GLfloat rotateAngle =0.2*3.1415926/180;
+    GLfloat rotateAngle = 0.2 * 3.1415926 / 180;
     GLfloat tempVector[3];
     // double  engineForce = 9.8000001;
-    tempVector[0] = upVector[0],tempVector[1]=upVector[1],tempVector[2] = upVector[2];
+    tempVector[0] = upVector[0], tempVector[1] = upVector[1], tempVector[2] = upVector[2];
     switch (key) {
 
 
@@ -428,49 +429,49 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
             break;
         case 'I':
         case 'i':
-            if(stopCameraTracing){
+            if (stopCameraTracing) {
                 lastPosition[2] += 30;
             }
             break;
         case 'K':
         case 'k':
-            if(stopCameraTracing){
+            if (stopCameraTracing) {
                 lastPosition[2] -= 30;
             }
             break;
         case 'O':
         case 'o':
-            if(stopCameraTracing){
+            if (stopCameraTracing) {
                 lastPosition[1] -= 30;
             }
             break;
         case 'U':
         case 'u':
-            if(stopCameraTracing){
+            if (stopCameraTracing) {
                 lastPosition[1] += 30;
             }
             break;
         case 'J':
         case 'j':
-            if(stopCameraTracing){
+            if (stopCameraTracing) {
                 lastPosition[0] += 30;
             }
             break;
         case 'L':
         case 'l':
-            if(stopCameraTracing){
+            if (stopCameraTracing) {
                 lastPosition[0] -= 30;
             }
             break;
         case 's':
         case 'S':
-            upVector[1] = tempVector[1]*cos(rotateAngle)-tempVector[2]*sin(rotateAngle);
-            upVector[2] = tempVector[1]*sin(rotateAngle)+tempVector[2]*cos(rotateAngle);
+            upVector[1] = tempVector[1] * cos(rotateAngle) - tempVector[2] * sin(rotateAngle);
+            upVector[2] = tempVector[1] * sin(rotateAngle) + tempVector[2] * cos(rotateAngle);
             break;
         case 'W':
         case 'w':
-            upVector[1] = tempVector[1]*cos(-rotateAngle)-tempVector[2]*sin(-rotateAngle);
-            upVector[2] = tempVector[1]*sin(-rotateAngle)+tempVector[2]*cos(-rotateAngle);
+            upVector[1] = tempVector[1] * cos(-rotateAngle) - tempVector[2] * sin(-rotateAngle);
+            upVector[2] = tempVector[1] * sin(-rotateAngle) + tempVector[2] * cos(-rotateAngle);
             break;
 
             //¥-axis rotate matrix
@@ -478,24 +479,24 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
 
         case 'D':
         case 'd':
-            upVector[0] = tempVector[0]*cos(rotateAngle)+tempVector[1]*sin(-rotateAngle);
-            upVector[1] = tempVector[0]*(-1)*sin(-rotateAngle)+tempVector[1]*cos(rotateAngle);
+            upVector[0] = tempVector[0] * cos(rotateAngle) + tempVector[1] * sin(-rotateAngle);
+            upVector[1] = tempVector[0] * (-1) * sin(-rotateAngle) + tempVector[1] * cos(rotateAngle);
 
             break;
 
         case 'A':
         case 'a':
-            upVector[0] = tempVector[0]*cos(-rotateAngle)+tempVector[1]*sin(rotateAngle);
-            upVector[1] = tempVector[0]*(-1)*sin(rotateAngle)+tempVector[1]*cos(-rotateAngle);
+            upVector[0] = tempVector[0] * cos(-rotateAngle) + tempVector[1] * sin(rotateAngle);
+            upVector[1] = tempVector[0] * (-1) * sin(rotateAngle) + tempVector[1] * cos(-rotateAngle);
 
             break;
 
         case '[':
-            engineForce +=20;
+            engineForce += 20;
             break;
 
         case ']':
-            engineForce -=20;
+            engineForce -= 20;
             break;
 
         case 'Z':
@@ -535,12 +536,12 @@ void Aircraft::processMouseMotion(int xpos, int ypos) {
     xoffset *= sensitivity;
     yoffset *= sensitivity;
 
-    Yaw   += xoffset;
+    Yaw += xoffset;
     Pitch += yoffset;
 
-    if(Pitch > 89.0)
+    if (Pitch > 89.0)
         Pitch = 89.0;
-    if(Pitch < -89.0)
+    if (Pitch < -89.0)
         Pitch = -89.0;
 
     glm::vec3 front;

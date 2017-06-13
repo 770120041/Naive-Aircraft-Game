@@ -14,7 +14,9 @@
 class SkyBox {
 public:
     static GLuint loadCubemap(std::vector<std::string> faces);
+
     static void render_skybox(GLuint skyboxVAO, GLuint cubemapTexture);
+
     static void skybox_buffer(GLuint &skyboxVAO, GLuint &skyboxVBO);
 };
 

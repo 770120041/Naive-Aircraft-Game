@@ -65,8 +65,10 @@ bool myGL::loadMaterial(const char *path, const char *fileName, std::vector<MyGL
     return true;
 }
 
-bool myGL::loadObj(const char *path, const char *fileName, std::vector<glm::vec3> &out_vertices, std::vector<glm::vec3> &out_uvs,
-                   std::vector<glm::vec3> &out_normals, std::vector<MyGLMaterial> &out_materials, std::vector<GLfloat> &out_material_ids) {
+bool myGL::loadObj(const char *path, const char *fileName, std::vector<glm::vec3> &out_vertices,
+                   std::vector<glm::vec3> &out_uvs,
+                   std::vector<glm::vec3> &out_normals, std::vector<MyGLMaterial> &out_materials,
+                   std::vector<GLfloat> &out_material_ids) {
     std::vector<unsigned int> vertexIndices, uvIndices, normalIndices;
     std::vector<glm::vec3> temp_vertices;
     std::vector<glm::vec3> temp_uvs;
@@ -124,7 +126,7 @@ bool myGL::loadObj(const char *path, const char *fileName, std::vector<glm::vec3
                     normalIndices.push_back(normalIndex[0]);
                     normalIndices.push_back(normalIndex[1]);
                     normalIndices.push_back(normalIndex[2]);
-                    for (int i=0; i<3; i++) {
+                    for (int i = 0; i < 3; i++) {
                         out_material_ids.push_back(currentMaterialId);
                     }
                 }
@@ -149,7 +151,7 @@ bool myGL::loadObj(const char *path, const char *fileName, std::vector<glm::vec3
                 normalIndices.push_back(normalIndex[2]);
                 normalIndices.push_back(normalIndex[3]);
 
-                for (int i=0; i<6; i++) {
+                for (int i = 0; i < 6; i++) {
                     out_material_ids.push_back(currentMaterialId);
                 }
 
@@ -162,7 +164,7 @@ bool myGL::loadObj(const char *path, const char *fileName, std::vector<glm::vec3
             char mtl[200];
             fscanf(file, "%s\n", mtl);
             bool flag = true;
-            for (int i=0; i<out_materials.size(); i++) {
+            for (int i = 0; i < out_materials.size(); i++) {
                 if (mtl == out_materials[i].materialName) {
                     currentMaterialId = i;
                     flag = false;
@@ -223,8 +225,7 @@ void myGL::dumpProgramLog(GLuint obj) {
 }
 
 
-
-GLuint myGL::LoadShaders(const char * vertex_file_path,const char * fragment_file_path){
+GLuint myGL::LoadShaders(const char *vertex_file_path, const char *fragment_file_path) {
 
     // Create the shaders
     GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
@@ -233,13 +234,14 @@ GLuint myGL::LoadShaders(const char * vertex_file_path,const char * fragment_fil
     // Read the Vertex Shader code from the file
     std::string VertexShaderCode;
     std::ifstream VertexShaderStream(vertex_file_path, std::ios::in);
-    if(VertexShaderStream.is_open()){
+    if (VertexShaderStream.is_open()) {
         std::string Line = "";
-        while(getline(VertexShaderStream, Line))
+        while (getline(VertexShaderStream, Line))
             VertexShaderCode += "\n" + Line;
         VertexShaderStream.close();
-    }else{
-        printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n", vertex_file_path);
+    } else {
+        printf("Impossible to open %s. Are you in the right directory ? Don't forget to read the FAQ !\n",
+               vertex_file_path);
         getchar();
         return 0;
     }
@@ -247,9 +249,9 @@ GLuint myGL::LoadShaders(const char * vertex_file_path,const char * fragment_fil
     // Read the Fragment Shader code from the file
     std::string FragmentShaderCode;
     std::ifstream FragmentShaderStream(fragment_file_path, std::ios::in);
-    if(FragmentShaderStream.is_open()){
+    if (FragmentShaderStream.is_open()) {
         std::string Line = "";
-        while(getline(FragmentShaderStream, Line))
+        while (getline(FragmentShaderStream, Line))
             FragmentShaderCode += "\n" + Line;
         FragmentShaderStream.close();
     }
@@ -260,15 +262,15 @@ GLuint myGL::LoadShaders(const char * vertex_file_path,const char * fragment_fil
 
     // Compile Vertex Shader
     printf("Compiling shader : %s\n", vertex_file_path);
-    char const * VertexSourcePointer = VertexShaderCode.c_str();
-    glShaderSource(VertexShaderID, 1, &VertexSourcePointer , NULL);
+    char const *VertexSourcePointer = VertexShaderCode.c_str();
+    glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
     glCompileShader(VertexShaderID);
 
     // Check Vertex Shader
     glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if ( InfoLogLength > 0 ){
-        std::vector<char> VertexShaderErrorMessage(InfoLogLength+1);
+    if (InfoLogLength > 0) {
+        std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
         glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
         printf("%s\n", &VertexShaderErrorMessage[0]);
     }
@@ -277,15 +279,15 @@ GLuint myGL::LoadShaders(const char * vertex_file_path,const char * fragment_fil
 
     // Compile Fragment Shader
     printf("Compiling shader : %s\n", fragment_file_path);
-    char const * FragmentSourcePointer = FragmentShaderCode.c_str();
-    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer , NULL);
+    char const *FragmentSourcePointer = FragmentShaderCode.c_str();
+    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
     glCompileShader(FragmentShaderID);
 
     // Check Fragment Shader
     glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
     glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if ( InfoLogLength > 0 ){
-        std::vector<char> FragmentShaderErrorMessage(InfoLogLength+1);
+    if (InfoLogLength > 0) {
+        std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
         glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
         printf("%s\n", &FragmentShaderErrorMessage[0]);
     }
@@ -302,8 +304,8 @@ GLuint myGL::LoadShaders(const char * vertex_file_path,const char * fragment_fil
     // Check the program
     glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
     glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if ( InfoLogLength > 0 ){
-        std::vector<char> ProgramErrorMessage(InfoLogLength+1);
+    if (InfoLogLength > 0) {
+        std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
         glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
         printf("%s\n", &ProgramErrorMessage[0]);
     }

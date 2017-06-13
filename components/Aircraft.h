@@ -28,7 +28,7 @@ public:
     void setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
                       const char *fragShadowFile);
 
-    void setupSkyBox(const char *skyShadervs,const char *skyShaderfs);
+    void setupSkyBox(const char *skyShadervs, const char *skyShaderfs);
 
     void setupBuffers(const char *objPath, const char *objFile);
 
@@ -36,7 +36,7 @@ public:
 
     void processNormalKeys(unsigned char key, int x, int y);
 
-    void processMouseMotion(int xpos,int  ypos);
+    void processMouseMotion(int xpos, int ypos);
 
     void processMouseAction(int button, int state, int x, int y);
 
@@ -63,7 +63,7 @@ private:
     glm::vec3 dir;
     bool stopCameraTracing = false;
     bool resetPos = true;
-    double lastX,lastY,Pitch = 0,Yaw = -90;
+    double lastX, lastY, Pitch = 0, Yaw = -90;
     //end of mousemotion
 
     //sky box
@@ -114,7 +114,7 @@ private:
     GLfloat planeVelocity[3];
     GLfloat pullForce[3];
     GLfloat airFriction[3];
-    GLfloat gravityForce[3]={0,0, -9.8f};
+    GLfloat gravityForce[3] = {0, 0, -9.8f};
 
     const glm::mat4 scaleBiasMatrix = glm::mat4(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
                                                 glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),
