@@ -211,7 +211,7 @@ void Aircraft::setBodyUniforms() {
 void Aircraft::setCameraCoordinate() {
     dir = viewDirVect * polar_r;
 
-    LightDirection = normalize(glm::vec3(-100.f, -200.f, -100.f));
+    LightDirection = normalize(glm::vec3(100.f, 200.f, 100.f));
 
     HalfVector = glm::normalize(LightDirection + viewDirVect);
 
@@ -293,7 +293,7 @@ void Aircraft::motion() {
 
 void Aircraft::render() {
     glm::mat4 lightViewMatrix = glm::lookAt(LightDirection, glm::vec3(0.f), Y),
-            lightProjectionMatrix(glm::ortho(-1500.f, 1500.f, -1500.f, 1500.f, 1000.f, 2500.f));
+            lightProjectionMatrix(glm::ortho(-1200.f, 1200.f, -1200.f, 1200.f, 1000.f, 2500.f));
     //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f));
     // todo !!!! ortho param quite strange still
 
@@ -307,7 +307,7 @@ void Aircraft::render() {
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_POLYGON_OFFSET_FILL);
-    glPolygonOffset(20.f, 40.f);
+    glPolygonOffset(3.f, 3.f);
 
     glUseProgram(shadowProgram);
 
