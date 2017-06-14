@@ -26,6 +26,13 @@ GLuint myGL::loadShader(GLuint SHADER_TYPE_MACRO, const char *filename) {
     return shader;
 }
 
+void myGL::attachShader(GLuint pid, GLuint SHADER_TYPE_MACRO, const char *filename) {
+    GLuint shader;
+    shader = myGL::loadShader(SHADER_TYPE_MACRO, filename);
+    glAttachShader(pid, shader);
+    glDeleteShader(shader);
+}
+
 bool myGL::loadMaterial(const char *path, const char *fileName, std::vector<MyGLMaterial> &out_materials) {
     MyGLMaterial temp;
     bool hasMaterial = false;

@@ -33,6 +33,8 @@ public:
 
     static GLuint loadShader(GLuint SHADER_TYPE_MACRO, const char *filename);
 
+    static void attachShader(GLuint pid, GLuint SHADER_TYPE_MACRO, const char *filename);
+
     static bool loadObj(const char *path, const char *fileName, std::vector<glm::vec3> &out_vertices,
                         std::vector<glm::vec3> &out_uvs,
                         std::vector<glm::vec3> &out_normals, std::vector<MyGLMaterial> &out_materials,
