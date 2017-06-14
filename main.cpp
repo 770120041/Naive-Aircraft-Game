@@ -34,7 +34,7 @@ void idleFunc() {
     myPlane->motion();
     myPlane->render();
 
-    myFloor->render();
+    //myFloor->render();
 
     glutSwapBuffers();
     myGL::dumpGLErrorLog();

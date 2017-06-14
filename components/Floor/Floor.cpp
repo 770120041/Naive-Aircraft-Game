@@ -26,14 +26,19 @@ void Floor::setupShaders(const char *vertFile, const char *tcFile, const char *t
     glLinkProgram(program);
     myGL::dumpProgramLog(program);
 
+    glPatchParameteri(GL_PATCH_VERTICES, 4);
+
     glDeleteShader(vi);
     glDeleteShader(tci);
     glDeleteShader(tei);
     glDeleteShader(fi);
+
+    glGenVertexArrays(1, &vao);
 }
 
 void Floor::render() {
     glUseProgram(program);
-    glDrawArrays(GL_PATCHES, 0, 3);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_PATCHES, 0, 4);
     glUseProgram(0);
 }

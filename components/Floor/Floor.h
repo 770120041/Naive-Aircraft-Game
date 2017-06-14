@@ -14,7 +14,7 @@ public:
     void render();
 
 private:
-    GLuint program;
+    GLuint program, vao;
 };
 
 
