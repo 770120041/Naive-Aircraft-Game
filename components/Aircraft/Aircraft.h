@@ -19,7 +19,7 @@ const GLuint DEPTH_TEXTURE_SIZE = 2048;
 
 class Aircraft {
 public:
-    Aircraft();
+    Aircraft(glm::mat4 &, glm::mat4 &);
 
     ~Aircraft();
 
@@ -31,8 +31,6 @@ public:
     void setupSkyBox(const char *skyShadervs, const char *skyShaderfs);
 
     void setupBuffers(const char *objPath, const char *objFile);
-
-    void processSpecialKeys(int key, int x, int y);
 
     void processNormalKeys(unsigned char key, int x, int y);
 
@@ -95,7 +93,8 @@ private:
 
     glm::vec3 cameraFront = Z;
 
-    glm::mat4 modelMatObj = glm::mat4(1.f), viewMatObj, projMatObj, MVPMatObj, shadowMVPMatObj;
+    glm::mat4 modelMatObj = glm::mat4(1.f),
+            &viewMatObj, &projMatObj, MVPMatObj, shadowMVPMatObj;
 
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec3> uvs;
@@ -115,6 +114,8 @@ private:
     GLfloat pullForce[3];
     GLfloat airFriction[3];
     GLfloat gravityForce[3] = {0, 0, -9.8f};
+
+    GLfloat rotateLR = 0.f, rotateUD = 0.f;
 
     const glm::mat4 scaleBiasMatrix = glm::mat4(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
                                                 glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),

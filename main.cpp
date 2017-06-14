@@ -1,17 +1,23 @@
 #include "libs/myGLHeaders.h"
 #include "components/Aircraft/Aircraft.h"
 #include "components/Floor/Floor.h"
+#include "components/Terrain/Terrain.h"
 
 using namespace std;
 
-Aircraft *myPlane = new Aircraft;
+glm::mat4 viewMatrix, projMatrix;
+
+Aircraft *myPlane = new Aircraft(viewMatrix, projMatrix);
 Floor *myFloor = new Floor;
+Terrain *myTerrain = new Terrain(viewMatrix, projMatrix);
 
 void prepare() {
     glEnable(GL_CULL_FACE);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glClearColor(1.0, 1.0, 1.0, 1.0);
+
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     myPlane->setupShaders("shader/jet/body.vert", "shader/jet/body.frag",
                           "shader/jet/shadow.vert", "shader/jet/shadow.frag");
@@ -23,11 +29,13 @@ void prepare() {
 
     myFloor->setupShaders("shader/floor/vert.glsl", "shader/floor/tc.glsl", "shader/floor/te.glsl", "shader/floor/frag.glsl");
 
+    myTerrain->setupShaders("shader/terrain/vert.glsl", "shader/terrain/frag.glsl");
+    myTerrain->setupBuffers();
+
     myGL::dumpGLErrorLog();
 }
 
 void idleFunc() {
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     myPlane->idle();
@@ -35,6 +43,8 @@ void idleFunc() {
     myPlane->render();
 
     //myFloor->render();
+
+    //myTerrain->render();
 
     glutSwapBuffers();
     myGL::dumpGLErrorLog();
@@ -45,7 +55,7 @@ void changeSize(int w, int h) {
 }
 
 void processSpecialKeys(int key, int x, int y) {
-    myPlane->processSpecialKeys(key, x, y);
+    //myPlane->processSpecialKeys(key, x, y);
 }
 
 void processNormalKeys(unsigned char key, int x, int y) {

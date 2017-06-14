@@ -4,7 +4,7 @@
 
 #include "Aircraft.h"
 
-Aircraft::Aircraft() {
+Aircraft::Aircraft(glm::mat4 &viewMatrix, glm::mat4 &projMatrix) : viewMatObj(viewMatrix), projMatObj(projMatrix) {
     for (int i = 0; i < 3; i++) {
         planeVelocity[i] = 0;
         planeAcceleration[i] = 0;
@@ -280,14 +280,20 @@ void Aircraft::idle() {
 
 void Aircraft::motion() {
     // todo !!! change plane pos and location to be rendered
-    glm::vec3 rotateAxis(glm::cross(Y, upVector));
-    GLfloat rotateDotProd = glm::dot(Z, glm::normalize(upVector));
-    GLfloat rotateAngle = glm::acos(rotateDotProd);
-    glm::mat4 rotateMat(1.f);
-    if (rotateAngle > 0.01f) {
-        rotateMat = glm::rotate(rotateAngle, rotateAxis);
-    }
+//    glm::vec3 rotateAxis(glm::cross(Y, upVector));
+//    GLfloat rotateDotProd = glm::dot(Z, glm::normalize(upVector));
+//    GLfloat rotateAngle = glm::acos(rotateDotProd);
+//    glm::mat4 rotateMat(1.f);
+//    if (rotateAngle > 0.01f) {
+//        rotateMat = glm::rotate(rotateAngle, rotateAxis);
+//    }
+//    modelMatObj = glm::translate(currentPos) * rotateMat;
+
+
+    glm::mat4 rotateMat = glm::rotate(rotateLR, Z) * glm::rotate(rotateUD, X);
     modelMatObj = glm::translate(currentPos) * rotateMat;
+
+    upVector = rotateMat * glm::vec4(Z, 1.f);
     // todo !!! motion matrix
 }
 
@@ -297,8 +303,8 @@ void Aircraft::render() {
     //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f));
     // todo !!!! ortho param quite strange still
 
-    shadowMVPMatObj = lightProjectionMatrix * lightViewMatrix;
-    MVPMatObj = scaleBiasMatrix * shadowMVPMatObj;
+    shadowMVPMatObj = lightProjectionMatrix * lightViewMatrix * modelMatObj;
+    MVPMatObj = scaleBiasMatrix * lightProjectionMatrix * lightViewMatrix;
 
     glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
     glViewport(0, 0, DEPTH_TEXTURE_SIZE, DEPTH_TEXTURE_SIZE);
@@ -341,28 +347,6 @@ void Aircraft::render() {
     //end of skybox
 }
 
-void Aircraft::processSpecialKeys(int key, int x, int y) {
-    glm::vec3 AxisX, AxisY(-viewDirVect.z, 0.f, viewDirVect.x), testVect;
-    testVect = viewDirVect;
-    switch (key) {
-        case GLUT_KEY_UP:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(1.0f), lookAtVect);
-            break;
-        case GLUT_KEY_DOWN:
-            viewDirVect = glm::rotate(viewDirVect, glm::radians(-1.0f), lookAtVect);
-            break;
-        case GLUT_KEY_LEFT:
-            lookAtVect = glm::rotate(lookAtVect, glm::radians(1.0f), viewDirVect);
-            break;
-        case GLUT_KEY_RIGHT:
-            lookAtVect = glm::rotate(lookAtVect, glm::radians(-1.0f), viewDirVect);
-            break;
-        default:
-            break;
-    }
-    setCameraCoordinate();
-}
-
 void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
     if (key == 27) {
         glDeleteVertexArrays(3, vao);
@@ -371,10 +355,9 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
         glDeleteShader(fb);
         exit(0);
     }
-    GLfloat rotateAngle = 0.2 * 3.1415926 / 180;
-    GLfloat tempVector[3];
+    GLfloat rotateAngle = 0.2f * 3.1415926f / 180.f;
+    glm::vec3 tempVector = upVector;
     // double  engineForce = 9.8000001;
-    tempVector[0] = upVector[0], tempVector[1] = upVector[1], tempVector[2] = upVector[2];
     switch (key) {
 
 
@@ -430,13 +413,11 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
             break;
         case 's':
         case 'S':
-            upVector[1] = tempVector[1] * cos(rotateAngle) - tempVector[2] * sin(rotateAngle);
-            upVector[2] = tempVector[1] * sin(rotateAngle) + tempVector[2] * cos(rotateAngle);
+            rotateUD += glm::radians(0.5f);
             break;
         case 'W':
         case 'w':
-            upVector[1] = tempVector[1] * cos(-rotateAngle) - tempVector[2] * sin(-rotateAngle);
-            upVector[2] = tempVector[1] * sin(-rotateAngle) + tempVector[2] * cos(-rotateAngle);
+            rotateUD -= glm::radians(0.5f);
             break;
 
             //¥-axis rotate matrix
@@ -444,16 +425,12 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
 
         case 'D':
         case 'd':
-            upVector[0] = tempVector[0] * cos(rotateAngle) + tempVector[1] * sin(-rotateAngle);
-            upVector[1] = tempVector[0] * (-1) * sin(-rotateAngle) + tempVector[1] * cos(rotateAngle);
-
+            rotateLR += glm::radians(0.5f);
             break;
 
         case 'A':
         case 'a':
-            upVector[0] = tempVector[0] * cos(-rotateAngle) + tempVector[1] * sin(rotateAngle);
-            upVector[1] = tempVector[0] * (-1) * sin(rotateAngle) + tempVector[1] * cos(-rotateAngle);
-
+            rotateLR -= glm::radians(0.5f);
             break;
 
         case '[':
