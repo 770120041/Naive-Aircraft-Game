@@ -34,31 +34,17 @@ void Aircraft::setupSkyBox(const char *skyShadervs, const char *skyShaderfs) {
             };
     cubemapTexture = SkyBox::loadCubemap(faces);
 
-    skyShader = myGL::LoadShaders(skyShadervs, skyShaderfs);
+    skyShader = glCreateProgram();
+    glAttachShader(skyShader, myGL::loadShader(GL_VERTEX_SHADER, skyShadervs));
+    glAttachShader(skyShader, myGL::loadShader(GL_FRAGMENT_SHADER, skyShaderfs));
+    glLinkProgram(skyShader);
+    myGL::dumpProgramLog(skyShader);
 }
 
 void Aircraft::setupShaders(const char *vertBodyFile, const char *fragBodyFile, const char *vertShadowFile,
                             const char *fragShadowFile) {
-    std::string vs, fs;
-    const char *vv, *ff;
-
-    vb = glCreateShader(GL_VERTEX_SHADER);
-    fb = glCreateShader(GL_FRAGMENT_SHADER);
-
-    vs = myGL::readShader(vertBodyFile);
-    fs = myGL::readShader(fragBodyFile);
-
-    vv = vs.c_str();
-    ff = fs.c_str();
-
-    glShaderSource(vb, 1, &vv, NULL);
-    glShaderSource(fb, 1, &ff, NULL);
-
-    glCompileShader(vb);
-    glCompileShader(fb);
-
-    myGL::dumpShaderLog(vb);
-    myGL::dumpShaderLog(fb);
+    vb = myGL::loadShader(GL_VERTEX_SHADER, vertBodyFile);
+    fb = myGL::loadShader(GL_FRAGMENT_SHADER, fragBodyFile);
 
     pb = glCreateProgram();
     glAttachShader(pb, vb);
@@ -85,23 +71,8 @@ void Aircraft::setupShaders(const char *vertBodyFile, const char *fragBodyFile, 
     BodyUniformLoc.StrengthLoc = glGetUniformLocation(pb, "Strength");
 
     // new shader
-    shadowVert = glCreateShader(GL_VERTEX_SHADER);
-    shadowFrag = glCreateShader(GL_FRAGMENT_SHADER);
-
-    vs = myGL::readShader(vertShadowFile);
-    fs = myGL::readShader(fragShadowFile);
-
-    vv = vs.c_str();
-    ff = fs.c_str();
-
-    glShaderSource(shadowVert, 1, &vv, NULL);
-    glShaderSource(shadowFrag, 1, &ff, NULL);
-
-    glCompileShader(shadowVert);
-    glCompileShader(shadowFrag);
-
-    myGL::dumpShaderLog(shadowVert);
-    myGL::dumpShaderLog(shadowFrag);
+    shadowVert = myGL::loadShader(GL_VERTEX_SHADER, vertShadowFile);
+    shadowFrag = myGL::loadShader(GL_FRAGMENT_SHADER, fragShadowFile);
 
     shadowProgram = glCreateProgram();
     glAttachShader(shadowProgram, shadowVert);
@@ -329,7 +300,6 @@ void Aircraft::render() {
     shadowMVPMatObj = lightProjectionMatrix * lightViewMatrix;
     MVPMatObj = scaleBiasMatrix * shadowMVPMatObj;
 
-    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
     glBindFramebuffer(GL_FRAMEBUFFER, depth_fbo);
     glViewport(0, 0, DEPTH_TEXTURE_SIZE, DEPTH_TEXTURE_SIZE);
 
@@ -369,11 +339,6 @@ void Aircraft::render() {
     glUniformMatrix4fv(glGetUniformLocation(skyShader, "projection"), 1, GL_FALSE, glm::value_ptr(projMatObj));
     SkyBox::render_skybox(skyboxVAO, cubemapTexture);
     //end of skybox
-
-    glutSwapBuffers();
-
-    myGL::dumpGLErrorLog();
-
 }
 
 void Aircraft::processSpecialKeys(int key, int x, int y) {

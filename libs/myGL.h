@@ -31,14 +31,14 @@ class myGL {
 public:
     static std::string readShader(const char *filename);
 
+    static GLuint loadShader(GLuint SHADER_TYPE_MACRO, const char *filename);
+
     static bool loadObj(const char *path, const char *fileName, std::vector<glm::vec3> &out_vertices,
                         std::vector<glm::vec3> &out_uvs,
                         std::vector<glm::vec3> &out_normals, std::vector<MyGLMaterial> &out_materials,
                         std::vector<GLfloat> &out_material_ids);
 
     static bool loadMaterial(const char *path, const char *fileName, std::vector<MyGLMaterial> &out_materials);
-
-    static GLuint LoadShaders(const char *vertex_file_path, const char *fragment_file_path);
 
     static void dumpShaderLog(GLuint obj);
 
