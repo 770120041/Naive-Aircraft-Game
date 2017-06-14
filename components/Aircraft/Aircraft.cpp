@@ -493,7 +493,6 @@ void Aircraft::processMouseMotion(int xpos, int ypos) {
     }
     GLfloat xoffset = xpos - lastX;
     GLfloat yoffset = lastY - ypos;
-    cout << xoffset << " " << yoffset << endl;
     lastX = xpos;
     lastY = ypos;
 

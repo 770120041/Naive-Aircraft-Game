@@ -5,7 +5,7 @@
 #ifndef MEGAPROJECT_SKYBOX_H
 #define MEGAPROJECT_SKYBOX_H
 
-#include "../libs/myGLHeaders.h"
+#include "../../libs/myGLHeaders.h"
 #include <string>
 #include <iostream>
 #include <vector>

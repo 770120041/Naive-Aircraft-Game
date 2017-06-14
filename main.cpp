@@ -1,9 +1,11 @@
 #include "libs/myGLHeaders.h"
-#include "components/Aircraft.h"
+#include "components/Aircraft/Aircraft.h"
+#include "components/Floor/Floor.h"
 
 using namespace std;
 
 Aircraft *myPlane = new Aircraft;
+Floor *myFloor = new Floor;
 
 void prepare() {
     glEnable(GL_CULL_FACE);
@@ -11,20 +13,31 @@ void prepare() {
     glDepthFunc(GL_LEQUAL);
     glClearColor(1.0, 1.0, 1.0, 1.0);
 
-    myPlane->setupShaders("shader/jet.body.vert", "shader/jet.body.frag",
-                          "shader/jet.shadow.vert", "shader/jet.shadow.frag");
+    myPlane->setupShaders("shader/jet/body.vert", "shader/jet/body.frag",
+                          "shader/jet/shadow.vert", "shader/jet/shadow.frag");
     myPlane->setupBuffers("source/", "myplane.obj");
-    myPlane->setupSkyBox("shader/cube.vert.glsl", "shader/cube.frag.glsl");
+    myPlane->setupSkyBox("shader/cube/vert.glsl", "shader/cube/frag.glsl");
 
     myPlane->loadIdentity();
     myPlane->processMouseMotion(0, 0);
+
+    myFloor->setupShaders("shader/floor/vert.glsl", "shader/floor/tc.glsl", "shader/floor/te.glsl", "shader/floor/frag.glsl");
+
     myGL::dumpGLErrorLog();
 }
 
 void idleFunc() {
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
     myPlane->idle();
     myPlane->motion();
     myPlane->render();
+
+    myFloor->render();
+
+    glutSwapBuffers();
+    myGL::dumpGLErrorLog();
 }
 
 void changeSize(int w, int h) {

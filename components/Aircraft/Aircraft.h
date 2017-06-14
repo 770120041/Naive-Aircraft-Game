@@ -5,8 +5,8 @@
 #ifndef MEGAPROJECT_AIRCRAFT_H
 #define MEGAPROJECT_AIRCRAFT_H
 
-#include "../libs/myGL.h"
-#include "SkyBox.h"
+#include "../../libs/myGL.h"
+#include "../SkyBox/SkyBox.h"
 #include <iostream>
 
 using namespace std;
