@@ -4,7 +4,7 @@
 
 #include "Aircraft.h"
 
-Aircraft::Aircraft(glm::mat4 &viewMatrix, glm::mat4 &projMatrix) : viewMatObj(viewMatrix), projMatObj(projMatrix) {
+Aircraft::Aircraft(glm::mat4 &viewMatrix, glm::mat4 &projMatrix, glm::vec3 &cameraLocation) : viewMatObj(viewMatrix), projMatObj(projMatrix), cameraLocation(cameraLocation) {
     for (int i = 0; i < 3; i++) {
         planeVelocity[i] = 0;
         planeAcceleration[i] = 0;
@@ -101,7 +101,7 @@ void Aircraft::changeSize(int w, int h) {
 
     WinRatio = (GLfloat) w / h;
 
-    projMatObj = glm::perspective(glm::radians(45.0f), WinRatio, 1.0f, 5000.0f);
+    projMatObj = glm::perspective(glm::radians(45.0f), WinRatio, 1.0f, 50000.0f);
     updateMVP();
 }
 
@@ -219,6 +219,7 @@ void Aircraft::setCameraCoordinate() {
 
     dir += currentPos;
     if (stopCameraTracing) {
+        cameraLocation = lastPosition + cameraFront;
         viewMatObj = glm::lookAt(
                 lastPosition,
                 lastPosition + cameraFront,
@@ -226,6 +227,7 @@ void Aircraft::setCameraCoordinate() {
         );
 
     } else {
+        cameraLocation = dir + cameraFront;
         viewMatObj = glm::lookAt(
                 dir,
                 dir + cameraFront,

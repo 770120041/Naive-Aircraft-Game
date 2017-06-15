@@ -5,7 +5,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -framework GLUT -framework Op
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES main.cpp libs/myGL.cpp libs/myGL.h components/Aircraft/Aircraft.cpp components/Aircraft/Aircraft.h libs/myGLHeaders.h components/SkyBox/SkyBox.cpp components/SkyBox/SkyBox.h components/Floor/Floor.cpp components/Floor/Floor.h)
+set(SOURCE_FILES main.cpp libs/myGL.cpp libs/myGL.h components/Aircraft/Aircraft.cpp components/Aircraft/Aircraft.h libs/myGLHeaders.h components/SkyBox/SkyBox.cpp components/SkyBox/SkyBox.h components/Floor/Floor.cpp components/Floor/Floor.h libs/PerlinNoise.cpp libs/PerlinNoise.h components/Terrain/Terrain.cpp components/Terrain/Terrain.h)
 
 include_directories(
         glm

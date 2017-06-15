@@ -6,10 +6,11 @@
 using namespace std;
 
 glm::mat4 viewMatrix, projMatrix;
+glm::vec3 cameraLocation;
 
-Aircraft *myPlane = new Aircraft(viewMatrix, projMatrix);
+Aircraft *myPlane = new Aircraft(viewMatrix, projMatrix, cameraLocation);
 Floor *myFloor = new Floor;
-Terrain *myTerrain = new Terrain(viewMatrix, projMatrix);
+Terrain *myTerrain = new Terrain(viewMatrix, projMatrix, cameraLocation);
 
 void prepare() {
     glEnable(GL_CULL_FACE);
@@ -44,7 +45,7 @@ void idleFunc() {
 
     //myFloor->render();
 
-    //myTerrain->render();
+    myTerrain->render();
 
     glutSwapBuffers();
     myGL::dumpGLErrorLog();

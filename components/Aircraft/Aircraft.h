@@ -19,7 +19,7 @@ const GLuint DEPTH_TEXTURE_SIZE = 2048;
 
 class Aircraft {
 public:
-    Aircraft(glm::mat4 &, glm::mat4 &);
+    Aircraft(glm::mat4 &, glm::mat4 &, glm::vec3 &);
 
     ~Aircraft();
 
@@ -61,7 +61,7 @@ private:
     glm::vec3 dir;
     bool stopCameraTracing = false;
     bool resetPos = true;
-    double lastX, lastY, Pitch = 0, Yaw = -90;
+    double lastX, lastY, Pitch = 0, Yaw = 90;
     //end of mousemotion
 
     //sky box
@@ -89,7 +89,7 @@ private:
 
     GLint winW, winH;
 
-    glm::vec3 viewDirVect = glm::vec3(0.0f, 0.5f, -1.2f), lookAtVect = Y;
+    glm::vec3 viewDirVect = glm::vec3(0.0f, 0.37f, -1.2f), lookAtVect = Y;
 
     glm::vec3 cameraFront = Z;
 
@@ -114,6 +114,8 @@ private:
     GLfloat pullForce[3];
     GLfloat airFriction[3];
     GLfloat gravityForce[3] = {0, 0, -9.8f};
+
+    glm::vec3 &cameraLocation;
 
     GLfloat rotateLR = 0.f, rotateUD = 0.f;
 
