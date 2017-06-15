@@ -4,14 +4,17 @@
 
 uniform int uEdgeMorph;
 uniform float uScale;
-uniform vec2 uOffset;
+uniform float uOffsetX;
+uniform float uOffsetY;
 uniform vec3 globalOffset;
 uniform sampler2D uHeightData;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
 
+vec2 uOffset;
+
 in vec2 vertPosition;
-out vec3 color;
+out vec3 vertColor;
 
 out vec3 vPosition;
 out float vMorphFactor;
@@ -54,10 +57,11 @@ float calculateMorph(vec2 p) {
 
 float getHeight(vec2 p) {
     float h = texture(uHeightData, p).r;
-    return h * h / 64 + 256 + 512;
+    return sqrt(h) * 16;
 }
 
 void main() {
+    uOffset = vec2(uOffsetX, uOffsetY);
     vMorphFactor = calculateMorph(vertPosition);
 
     float grid = uScale / TILE_RESOLUTION;
@@ -65,13 +69,14 @@ void main() {
     if (vMorphFactor > 0.f) {
         grid = 2.f * grid;
         vec2 pos2 = floor(vertPosition / grid) * grid;
-
         vPosition.xy = mix(vertPosition, pos2, vMorphFactor);
     } else {
         vPosition.xy = vertPosition;
     }
+//    vPosition.xy = vertPosition;
     float tt = getHeight(vPosition.xy);
-    vPosition = vec3(vPosition.xy * uScale + uOffset + globalOffset.xy, tt).xzy;
-    color = (abs(vec3((vPosition)) / 1024));
+    vPosition.xy = vertPosition;
+    vPosition = vec3(vPosition.xy * uScale + uOffset + globalOffset.xz, tt).xzy;
+    vertColor = vec3(vMorphFactor / 8.f);
     gl_Position = projectionMatrix * viewMatrix * vec4(vPosition, 1.f);
 }

@@ -109,11 +109,11 @@ private:
     const GLfloat planeWeight = 1;
     GLfloat engineForce = 9.800000;
 
-    GLfloat planeAcceleration[3];
-    GLfloat planeVelocity[3];
-    GLfloat pullForce[3];
-    GLfloat airFriction[3];
-    GLfloat gravityForce[3] = {0, 0, -9.8f};
+    glm::vec3 planeAcceleration;
+    glm::vec3 planeVelocity;
+    glm::vec3 pullForce;
+    glm::vec3 airFriction;
+    glm::vec3 gravityForce = glm::vec3(0, 0, -9.8f);
 
     glm::vec3 &cameraLocation;
 

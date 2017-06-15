@@ -7,6 +7,7 @@
 
 #include "../../libs/PerlinNoise.h"
 #include "../../libs/myGL.h"
+#include <SOIL.h>
 
 #include <vector>
 #include <string>
@@ -19,7 +20,7 @@ class Terrain {
 public:
     Terrain(glm::mat4 &, glm::mat4 &, glm::vec3 &);
     void setupShaders(const char *vertFile, const char *fragFile);
-    void setupBuffers();
+    void setupBuffers(const char *rockFile);
     void render();
 
 private:
@@ -37,7 +38,7 @@ private:
 
     struct {
         GLint ViewMatrixLoc, ProjectionMatrixLoc;
-        GLint uEdgeMorphLoc, globalOffsetLoc, uOffsetLoc, uScaleLoc;
+        GLint uEdgeMorphLoc, globalOffsetLoc, uOffsetXLoc, uOffsetYLoc, uScaleLoc;
     } BodyUniformLoc;
 
     struct TileInfo {
@@ -52,7 +53,7 @@ private:
     vector<glm::vec2> plane;
     glm::vec3 &globalOffset;
     vector<TileInfo> tiles;
-    int levels = 10;
+    int levels = 4;
     int worldWidth = 3000;
 };
 

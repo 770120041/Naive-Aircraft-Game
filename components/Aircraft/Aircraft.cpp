@@ -101,7 +101,7 @@ void Aircraft::changeSize(int w, int h) {
 
     WinRatio = (GLfloat) w / h;
 
-    projMatObj = glm::perspective(glm::radians(45.0f), WinRatio, 1.0f, 50000.0f);
+    projMatObj = glm::perspective(glm::radians(45.0f), WinRatio, 1.0f, 5000000.0f);
     updateMVP();
 }
 
@@ -243,34 +243,20 @@ void Aircraft::idle() {
     GLfloat squareVelocity;
     GLfloat deltaT = 0.0001;
     for (int i = 0; i < 1000; i++) {
-        currentPos[0] += planeVelocity[0] * deltaT;
-        currentPos[1] += planeVelocity[1] * deltaT;
-        currentPos[2] += planeVelocity[2] * deltaT;
+        currentPos += planeVelocity * deltaT;
+        planeVelocity += planeAcceleration * deltaT;
 
-        planeVelocity[0] += planeAcceleration[0] * deltaT;
-        planeVelocity[1] += planeAcceleration[1] * deltaT;
-        planeVelocity[2] += planeAcceleration[2] * deltaT;
+        squareVelocity = glm::length(planeVelocity * planeVelocity);
 
-        squareVelocity = planeVelocity[0] * planeVelocity[0] + planeVelocity[1] * planeVelocity[1] +
-                         planeVelocity[2] * planeVelocity[2];
-        airFriction[0] = -0.6 * planeVelocity[0] * sqrt(squareVelocity);
-        airFriction[1] = -0.6 * planeVelocity[1] * sqrt(squareVelocity);
-        airFriction[2] = -0.6 * planeVelocity[2] * sqrt(squareVelocity);
+        airFriction = -0.6 * planeVelocity * sqrt(squareVelocity);
+
+        pullForce = engineForce * upVector;
 
 
-        pullForce[0] = engineForce * upVector[0];
-        pullForce[1] = engineForce * upVector[1];
-        pullForce[2] = engineForce * upVector[2];
+        squareVelocity = glm::length(planeVelocity * planeVelocity);
 
-
-        squareVelocity = planeVelocity[0] * planeVelocity[0] + planeVelocity[1] * planeVelocity[1] +
-                         planeVelocity[2] * planeVelocity[2];
-
-        planeAcceleration[0] = (airFriction[0] + pullForce[0] + gravityForce[0]) / planeWeight;
-        planeAcceleration[1] = (airFriction[1] + pullForce[1] + gravityForce[1]) / planeWeight;
-        planeAcceleration[2] = (airFriction[2] + pullForce[2] + gravityForce[2]) / planeWeight;
+        planeAcceleration = (airFriction + pullForce + gravityForce) / planeWeight;
     }
-    //    printf("up x y z at %.3f %.3f %.3f\n",upVector[0],upVector[1],upVector[2]);
 
     setCameraCoordinate();
 
@@ -283,7 +269,7 @@ void Aircraft::idle() {
 void Aircraft::motion() {
     // todo !!! change plane pos and location to be rendered
 //    glm::vec3 rotateAxis(glm::cross(Y, upVector));
-//    GLfloat rotateDotProd = glm::dot(Z, glm::normalize(upVector));
+//    GLfloat rotateDotProd = glm::dot(Z, glm::normalize());
 //    GLfloat rotateAngle = glm::acos(rotateDotProd);
 //    glm::mat4 rotateMat(1.f);
 //    if (rotateAngle > 0.01f) {
@@ -295,7 +281,10 @@ void Aircraft::motion() {
     glm::mat4 rotateMat = glm::rotate(rotateLR, Z) * glm::rotate(rotateUD, X);
     modelMatObj = glm::translate(currentPos) * rotateMat;
 
-    upVector = rotateMat * glm::vec4(Z, 1.f);
+    upVector = rotateMat * glm::vec4(Y, 1.f);
+
+    cout << engineForce << " " << planeAcceleration.x << " " << planeAcceleration.y << " " << planeAcceleration.z << endl;
+    //printf("!!up x y z at %.3f %.3f %.3f\n",planeAcceleration[0],planeAcceleration[1],planeAcceleration[2]);
     // todo !!! motion matrix
 }
 

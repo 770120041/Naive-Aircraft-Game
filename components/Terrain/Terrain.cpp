@@ -23,11 +23,12 @@ void Terrain::setupShaders(const char *vertFile, const char *fragFile) {
 
     BodyUniformLoc.uEdgeMorphLoc = glGetUniformLocation(program, "uEdgeMorph");
     BodyUniformLoc.globalOffsetLoc = glGetUniformLocation(program, "globalOffset");
-    BodyUniformLoc.uOffsetLoc = glGetUniformLocation(program, "uOffset");
+    BodyUniformLoc.uOffsetXLoc = glGetUniformLocation(program, "uOffsetX");
+    BodyUniformLoc.uOffsetYLoc = glGetUniformLocation(program, "uOffsetY");
     BodyUniformLoc.uScaleLoc = glGetUniformLocation(program, "uScale");
 }
 
-void Terrain::setupBuffers() {
+void Terrain::setupBuffers(const char *rockFile) {
     this->noise();
     this->setupPlane();
 
@@ -50,6 +51,8 @@ void Terrain::render() {
     glUniformMatrix4fv(BodyUniformLoc.ViewMatrixLoc, 1, 0, glm::value_ptr(viewMatObj));
     glUniformMatrix4fv(BodyUniformLoc.ProjectionMatrixLoc, 1, 0, glm::value_ptr(projMatObj));
     glUniform3fv(BodyUniformLoc.globalOffsetLoc, 1, glm::value_ptr(globalOffset));
+
+    tiles.clear();
 
     GLfloat initialScale = worldWidth / pow( 2, levels );
     this->createTile(glm::vec2(-initialScale, -initialScale), initialScale, Edge.NONE);
@@ -76,16 +79,15 @@ void Terrain::render() {
         this->createTile(glm::vec2( scale, 0), scale, Edge.RIGHT );
         this->createTile(glm::vec2( scale, scale), scale, Edge.TOP | Edge.RIGHT );
     }
-
-    tiles.clear();
 }
 
 void Terrain::createTile(glm::vec2 offset, GLfloat scale, GLint edgeMorph) {
     int i = tiles.size();
     tiles.emplace_back(offset, scale, edgeMorph);
-    glUniform2fv(BodyUniformLoc.uOffsetLoc, 1, glm::value_ptr(tiles[i].offset));
-    glUniform1f(BodyUniformLoc.uScaleLoc, tiles[i].scale);
-    glUniform1i(BodyUniformLoc.uEdgeMorphLoc, tiles[i].edgeMorph);
+    glUniform1f(BodyUniformLoc.uOffsetXLoc, offset.x);
+    glUniform1f(BodyUniformLoc.uOffsetYLoc, offset.y);
+    glUniform1f(BodyUniformLoc.uScaleLoc, scale);
+    glUniform1i(BodyUniformLoc.uEdgeMorphLoc, edgeMorph);
 
     glDrawArrays(GL_TRIANGLES, 0, plane.size());
 }
@@ -105,16 +107,16 @@ void Terrain::setupPlane() {
             by = ay;
             cy = (double)(j+1) / resolution;
 
-            plane.emplace_back(ax, ay);
-            plane.emplace_back(bx, by);
             plane.emplace_back(cx, cy);
+            plane.emplace_back(bx, by);
+            plane.emplace_back(ax, ay);
 
             dx = (double)(i+1) / resolution;
             dy = (double)(j+1) / resolution;
 
-            plane.emplace_back(bx, by);
-            plane.emplace_back(dx, dy);
             plane.emplace_back(cx, cy);
+            plane.emplace_back(dx, dy);
+            plane.emplace_back(bx, by);
         }
     }
 }
