@@ -22,7 +22,7 @@ out vec2 vPosXY;
 
 float getHeight(vec2 p) {
     float h = texture(uHeightData, p).r;
-    float hh = h * h * h / 16;
+    float hh = h * h * h / 4;
     return hh;
 }
 
@@ -36,6 +36,7 @@ void main() {
     vec2 scaledPos = (vPosition.xy / worldWidth + 1.f) * .5f;
     vPosition.z = getHeight(scaledPos);
     vPosition = vPosition.xzy;
+
     gl_Position = projectionMatrix * viewMatrix * vec4(vPosition, 1.f);
     vPosition.xz = scaledPos;
 }

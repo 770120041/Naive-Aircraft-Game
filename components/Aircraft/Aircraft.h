@@ -7,6 +7,8 @@
 
 #include "../../libs/myGL.h"
 #include "../SkyBox/SkyBox.h"
+#include "../AABB/AABB.h"
+
 #include <iostream>
 
 using namespace std;
@@ -46,6 +48,8 @@ public:
 
     void idle();
 
+    bool isCollided(AABB* a);
+
 protected:
     void updateMVP();
 
@@ -57,6 +61,7 @@ private:
     GLuint pb, vb, fb, shadowProgram, shadowVert, shadowFrag;
 
     //mouse motion
+    bool firstPerson= false;
     glm::vec3 lastPosition;
     glm::vec3 dir;
     bool stopCameraTracing = false;
@@ -83,6 +88,8 @@ private:
 
     GLuint vao[3];
 
+    AABB aabb;
+
     GLfloat WinRatio;
 
     GLuint depth_texture, depth_fbo;
@@ -107,7 +114,7 @@ private:
     glm::vec3 currentPos = glm::vec3(0.f), upVector = Z;
 
     const GLfloat planeWeight = 1;
-    GLfloat engineForce = 9.800000;
+    GLfloat engineForce = .80f;
 
     glm::vec3 planeAcceleration;
     glm::vec3 planeVelocity;
@@ -115,9 +122,13 @@ private:
     glm::vec3 airFriction;
     glm::vec3 gravityForce = glm::vec3(0, 0, -9.8f);
 
+    GLfloat airFricConst = -0.00001f;
+
     glm::vec3 &cameraLocation;
 
-    GLfloat rotateLR = 0.f, rotateUD = 0.f;
+    GLfloat rotateLR = 0.f, rotateUD = 0.f,rotateQE=0.f;
+
+    GLfloat scale = .5f;
 
     const glm::mat4 scaleBiasMatrix = glm::mat4(glm::vec4(0.5f, 0.0f, 0.0f, 0.0f),
                                                 glm::vec4(0.0f, 0.5f, 0.0f, 0.0f),

@@ -25,12 +25,12 @@ void Aircraft::setupSkyBox(const char *skyShadervs, const char *skyShaderfs) {
     //read texture
     std::vector<std::string> faces
             {
-                    "./texture/right.jpg",
-                    "./texture/left.jpg",
-                    "./texture/top.jpg",
-                    "./texture/bottom.jpg",
-                    "./texture/back.jpg",
-                    "./texture/front.jpg"
+                    "./texture/right.tga",
+                    "./texture/left.tga",
+                    "./texture/top.tga",
+                    "./texture/bottom.tga",
+                    "./texture/back.tga",
+                    "./texture/front.tga"
             };
     cubemapTexture = SkyBox::loadCubemap(faces);
 
@@ -107,6 +107,7 @@ void Aircraft::changeSize(int w, int h) {
 
 void Aircraft::setupBuffers(const char *objPath, const char *objFile) {
     myGL::loadObj(objPath, objFile, vertices, uvs, normals, materials, material_ids);
+    aabb.getAABB(vertices, scale);
 
     GLuint buffers[3];
     glGenVertexArrays(3, vao);
@@ -209,8 +210,10 @@ void Aircraft::setBodyUniforms() {
 }
 
 void Aircraft::setCameraCoordinate() {
-    dir = viewDirVect * polar_r;
-
+    glm::mat4 rotateMat =glm::rotate(rotateLR, Z) *glm::rotate(rotateQE ,Y);
+    glm::vec4 viewDirect4 = glm::vec4(glm::vec3(viewDirVect),1.0f);
+    glm::vec3 afterRotate =  rotateMat * viewDirect4 ;
+    dir = afterRotate * polar_r;
     LightDirection = normalize(glm::vec3(100.f, 200.f, 100.f));
 
     HalfVector = glm::normalize(LightDirection + viewDirVect);
@@ -219,15 +222,25 @@ void Aircraft::setCameraCoordinate() {
 
     dir += currentPos;
     if (stopCameraTracing) {
-        cameraLocation = lastPosition + cameraFront;
         viewMatObj = glm::lookAt(
                 lastPosition,
                 lastPosition + cameraFront,
                 lookAtVect
         );
 
-    } else {
-        cameraLocation = dir + cameraFront;
+    }
+    else if(firstPerson){
+        glm::vec3 firstPersonSight ;
+        firstPersonSight[0] = dir[0];
+        firstPersonSight[1] = dir[1]-475.0f;
+        firstPersonSight[2] = dir[2]+3500.0f;
+        viewMatObj = glm::lookAt(
+                firstPersonSight,
+                firstPersonSight + cameraFront,
+                lookAtVect
+        );
+    }
+    else {
         viewMatObj = glm::lookAt(
                 dir,
                 dir + cameraFront,
@@ -243,27 +256,37 @@ void Aircraft::idle() {
     GLfloat squareVelocity;
     GLfloat deltaT = 0.0001;
     for (int i = 0; i < 1000; i++) {
-        currentPos += planeVelocity * deltaT;
-        planeVelocity += planeAcceleration * deltaT;
+        currentPos[0] += planeVelocity[0] * deltaT;
+        currentPos[1] += planeVelocity[1] * deltaT;
+        currentPos[2] += planeVelocity[2] * deltaT;
+        aabb.updataAABB(currentPos);
+        planeVelocity[0] += planeAcceleration[0] * deltaT;
+        planeVelocity[1] += planeAcceleration[1] * deltaT;
+        planeVelocity[2] += planeAcceleration[2] * deltaT;
 
-        squareVelocity = glm::length(planeVelocity * planeVelocity);
+        squareVelocity = planeVelocity[0] * planeVelocity[0] + planeVelocity[1] * planeVelocity[1] +
+                         planeVelocity[2] * planeVelocity[2];
+        airFriction[0] = airFricConst * planeVelocity[0] * sqrt(squareVelocity);
+        airFriction[1] = airFricConst * planeVelocity[1] * sqrt(squareVelocity);
+        airFriction[2] = airFricConst  * planeVelocity[2] * sqrt(squareVelocity);
 
-        airFriction = -0.6 * planeVelocity * sqrt(squareVelocity);
 
-        pullForce = engineForce * upVector;
+        pullForce[0] = engineForce * upVector[0]  ;
+        pullForce[1] = engineForce * upVector[1] ;
+        pullForce[2] = engineForce * upVector[2];
 
 
-        squareVelocity = glm::length(planeVelocity * planeVelocity);
+        squareVelocity = planeVelocity[0] * planeVelocity[0] + planeVelocity[1] * planeVelocity[1] +
+                         planeVelocity[2] * planeVelocity[2];
 
-        planeAcceleration = (airFriction + pullForce + gravityForce) / planeWeight;
+        planeAcceleration[0] = (airFriction[0] + pullForce[0] + gravityForce[0]) / planeWeight;
+        planeAcceleration[1] = (airFriction[1] + pullForce[1] + gravityForce[1]) / planeWeight;
+        planeAcceleration[2] = (airFriction[2] + pullForce[2] + gravityForce[2]) / planeWeight;
     }
+    //    printf("up x y z at %.3f %.3f %.3f\n",upVector[0],upVector[1],upVector[2]);
+    aabb.updataAABB(currentPos);
 
     setCameraCoordinate();
-
-
-
-    // upVector = glm::rotate(upVector, glm::radians(1.f), X);
-    // currentPos += glm::vec3(.3f);
 }
 
 void Aircraft::motion() {
@@ -278,19 +301,20 @@ void Aircraft::motion() {
 //    modelMatObj = glm::translate(currentPos) * rotateMat;
 
 
-    glm::mat4 rotateMat = glm::rotate(rotateLR, Z) * glm::rotate(rotateUD, X);
-    modelMatObj = glm::translate(currentPos) * rotateMat;
+    glm::mat4 rotateMat = glm::rotate(rotateLR, Z) * glm::rotate(rotateUD, X) *glm::rotate(rotateQE ,Y);
+    modelMatObj = glm::translate(currentPos) * rotateMat * glm::scale(glm::vec3(scale));
 
-    upVector = rotateMat * glm::vec4(Y, 1.f);
+    upVector = rotateMat * glm::vec4(Z, 1.f);
 
-    cout << engineForce << " " << planeAcceleration.x << " " << planeAcceleration.y << " " << planeAcceleration.z << endl;
+    //cout << engineForce << " " << planeAcceleration.x << " " << planeAcceleration.y << " " << planeAcceleration.z << endl;
     //printf("!!up x y z at %.3f %.3f %.3f\n",planeAcceleration[0],planeAcceleration[1],planeAcceleration[2]);
     // todo !!! motion matrix
 }
 
 void Aircraft::render() {
+//    cout << currentPos.x << " " << currentPos.y << " " << currentPos.z << endl;
     glm::mat4 lightViewMatrix = glm::lookAt(LightDirection, glm::vec3(0.f), Y),
-            lightProjectionMatrix(glm::ortho(-1200.f, 1200.f, -1200.f, 1200.f, 1000.f, 2500.f));
+            lightProjectionMatrix(glm::ortho(-1200.f, 1200.f, -1200.f, 1200.f, 1000.f, 250000.f));
     //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f));
     // todo !!!! ortho param quite strange still
 
@@ -328,6 +352,7 @@ void Aircraft::render() {
 
     glBindVertexArray(vao[0]);
     glDrawArrays(GL_TRIANGLES, 0, vertices.size());
+    glBindTexture(GL_TEXTURE_2D, 0);
 
     //sky box
     glUseProgram(skyShader);
@@ -361,6 +386,10 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
         //upVector (x,y,z)
         //X-axis rotate matrix
         //[1 0 0] [0 cos -sin] [0 sin cos]
+        case 'F':
+        case 'f':
+            firstPerson = !firstPerson;
+            break;
         case 'H':
         case 'h':
             lastPosition = dir;
@@ -369,25 +398,25 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
         case 'I':
         case 'i':
             if (stopCameraTracing) {
-                lastPosition[2] += 30;
+                lastPosition[2] += 70;
             }
             break;
         case 'K':
         case 'k':
             if (stopCameraTracing) {
-                lastPosition[2] -= 30;
+                lastPosition[2] -= 70;
             }
             break;
         case 'O':
         case 'o':
             if (stopCameraTracing) {
-                lastPosition[1] -= 30;
+                lastPosition[1] -= 70;
             }
             break;
         case 'U':
         case 'u':
             if (stopCameraTracing) {
-                lastPosition[1] += 30;
+                lastPosition[1] += 70;
             }
             break;
         case 'J':
@@ -405,10 +434,12 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
         case 's':
         case 'S':
             rotateUD += glm::radians(0.5f);
+
             break;
         case 'W':
         case 'w':
             rotateUD -= glm::radians(0.5f);
+
             break;
 
             //¥-axis rotate matrix
@@ -416,20 +447,28 @@ void Aircraft::processNormalKeys(unsigned char key, int x, int y) {
 
         case 'D':
         case 'd':
-            rotateLR += glm::radians(0.5f);
+            rotateLR += glm::radians(0.25f);
             break;
 
         case 'A':
         case 'a':
-            rotateLR -= glm::radians(0.5f);
+            rotateLR -= glm::radians(0.25f);
+            break;
+        case 'Q':
+        case 'q':
+            rotateQE += glm::radians(0.25f);
+            break;
+        case 'E':
+        case 'e':
+            rotateQE -= glm::radians(0.25f);
             break;
 
         case '[':
-            engineForce += 20;
+            engineForce += 40;
             break;
 
         case ']':
-            engineForce -= 20;
+            engineForce -= 40;
             break;
 
         case 'Z':
@@ -482,4 +521,8 @@ void Aircraft::processMouseMotion(int xpos, int ypos) {
     front.z = sin(glm::radians(Yaw)) * cos(glm::radians(Pitch));
     cameraFront = glm::normalize(front);
     setCameraCoordinate();
+}
+
+bool Aircraft::isCollided(AABB* a) {
+    return aabb.isCollided(a);
 }

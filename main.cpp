@@ -1,6 +1,5 @@
 #include "libs/myGLHeaders.h"
 #include "components/Aircraft/Aircraft.h"
-#include "components/Floor/Floor.h"
 #include "components/Terrain/Terrain.h"
 
 using namespace std;
@@ -9,7 +8,8 @@ glm::mat4 viewMatrix, projMatrix;
 glm::vec3 cameraLocation;
 
 Aircraft *myPlane = new Aircraft(viewMatrix, projMatrix, cameraLocation);
-Floor *myFloor = new Floor;
+AABB *myFloor=new AABB;
+glm::vec3 Floormin = glm::vec3(-20000.f, 500.f, -26000.f), Floormax = glm::vec3(20000.f, 5000.f, 25000.f);
 Terrain *myTerrain = new Terrain(viewMatrix, projMatrix, cameraLocation);
 
 void prepare() {
@@ -17,6 +17,8 @@ void prepare() {
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
     glClearColor(1.0, 1.0, 1.0, 1.0);
+
+    myFloor->setAABB(Floormin, Floormax);
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
@@ -28,10 +30,10 @@ void prepare() {
     myPlane->loadIdentity();
     myPlane->processMouseMotion(0, 0);
 
-    myFloor->setupShaders("shader/floor/vert.glsl", "shader/floor/tc.glsl", "shader/floor/te.glsl", "shader/floor/frag.glsl");
+    //myFloor->setupShaders("shader/floor/vert.glsl", "shader/floor/tc.glsl", "shader/floor/te.glsl", "shader/floor/frag.glsl");
 
     myTerrain->setupShaders("shader/terrain/vert.glsl", "shader/terrain/frag.glsl");
-    myTerrain->setupBuffers("source/rock.jpg");
+    myTerrain->setupBuffers("source/rock2.jpg", "source/airport.jpg");
 
     myGL::dumpGLErrorLog();
 }
@@ -40,6 +42,9 @@ void idleFunc() {
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
     myPlane->idle();
+    if (myPlane->isCollided(myFloor)) {
+        exit(0);
+    }
     myPlane->motion();
     myPlane->render();
 

@@ -20,13 +20,14 @@ class Terrain {
 public:
     Terrain(glm::mat4 &, glm::mat4 &, glm::vec3 &);
     void setupShaders(const char *vertFile, const char *fragFile);
-    void setupBuffers(const char *rockFile);
+    void setupBuffers(const char *rockFile, const char *airportFile);
     void render();
 
 private:
     void noise();
     void setupPlane();
     void setupRock(const char *rockFile);
+    void setupAirport(const char *airportFile);
     void createTile(glm::vec2 offset, GLfloat scale, GLint edgeMorph);
 
     struct {
@@ -49,12 +50,12 @@ private:
         GLint edgeMorph;
     };
     glm::mat4 &viewMatObj, &projMatObj;
-    GLuint program, vao, heightData, vbo, rockData;
+    GLuint program, vao, heightData, vbo, rockData, airportData;
     GLfloat *noiseData = nullptr;
     vector<glm::vec2> plane;
     glm::vec3 &globalOffset;
     vector<TileInfo> tiles;
-    int levels = 22;
+    int levels = 14;
     int worldWidth = 1000000;
 };
 
