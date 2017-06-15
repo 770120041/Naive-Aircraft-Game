@@ -26,11 +26,13 @@ void Terrain::setupShaders(const char *vertFile, const char *fragFile) {
     BodyUniformLoc.uOffsetXLoc = glGetUniformLocation(program, "uOffsetX");
     BodyUniformLoc.uOffsetYLoc = glGetUniformLocation(program, "uOffsetY");
     BodyUniformLoc.uScaleLoc = glGetUniformLocation(program, "uScale");
+    BodyUniformLoc.worldWidthLoc = glGetUniformLocation(program, "worldWidth");
 }
 
 void Terrain::setupBuffers(const char *rockFile) {
     this->noise();
     this->setupPlane();
+    this->setupRock(rockFile);
 
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
@@ -44,15 +46,35 @@ void Terrain::setupBuffers(const char *rockFile) {
     glVertexAttribPointer(vertloc, 2, GL_FLOAT, 0, 0, 0);
 }
 
+void Terrain::setupRock(const char *rockFile) {
+    glUseProgram(program);
+    glGenTextures(1, &rockData);
+    glUniform1i(glGetUniformLocation(program, "uRock"), 1);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, rockData);
+
+    int width, height;
+
+    unsigned char *data = SOIL_load_image(rockFile, &width, &height, 0, SOIL_LOAD_RGB);
+    if (data) {
+        glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, width, height);
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+    }
+}
+
 void Terrain::render() {
     glUseProgram(program);
-    glBindTexture(GL_TEXTURE_2D, tbo);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, heightData);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, rockData);
     glBindVertexArray(vao);
     glUniformMatrix4fv(BodyUniformLoc.ViewMatrixLoc, 1, 0, glm::value_ptr(viewMatObj));
     glUniformMatrix4fv(BodyUniformLoc.ProjectionMatrixLoc, 1, 0, glm::value_ptr(projMatObj));
     glUniform3fv(BodyUniformLoc.globalOffsetLoc, 1, glm::value_ptr(globalOffset));
+    glUniform1i(BodyUniformLoc.worldWidthLoc, worldWidth);
 
-    tiles.clear();
+    //tiles.clear();
 
     GLfloat initialScale = worldWidth / pow( 2, levels );
     this->createTile(glm::vec2(-initialScale, -initialScale), initialScale, Edge.NONE);
@@ -79,11 +101,12 @@ void Terrain::render() {
         this->createTile(glm::vec2( scale, 0), scale, Edge.RIGHT );
         this->createTile(glm::vec2( scale, scale), scale, Edge.TOP | Edge.RIGHT );
     }
+    glActiveTexture(GL_TEXTURE0);
 }
 
 void Terrain::createTile(glm::vec2 offset, GLfloat scale, GLint edgeMorph) {
     int i = tiles.size();
-    tiles.emplace_back(offset, scale, edgeMorph);
+    //tiles.emplace_back(offset, scale, edgeMorph);
     glUniform1f(BodyUniformLoc.uOffsetXLoc, offset.x);
     glUniform1f(BodyUniformLoc.uOffsetYLoc, offset.y);
     glUniform1f(BodyUniformLoc.uScaleLoc, scale);
@@ -149,8 +172,12 @@ void Terrain::noise() {
         quality *= 5;
     }
 
-    glGenTextures(1, &tbo);
-    glBindTexture(GL_TEXTURE_2D, tbo);
+    glUseProgram(program);
+    glGenTextures(1, &heightData);
+    glUniform1i(glGetUniformLocation(program, "uHeightData"), 0);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, heightData);
     glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, width);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, width, GL_RED, GL_FLOAT, &noiseData[0]);
+    glBindTexture(GL_TEXTURE_2D, 0);
 }

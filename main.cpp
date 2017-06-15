@@ -31,7 +31,7 @@ void prepare() {
     myFloor->setupShaders("shader/floor/vert.glsl", "shader/floor/tc.glsl", "shader/floor/te.glsl", "shader/floor/frag.glsl");
 
     myTerrain->setupShaders("shader/terrain/vert.glsl", "shader/terrain/frag.glsl");
-    myTerrain->setupBuffers();
+    myTerrain->setupBuffers("source/rock.jpg");
 
     myGL::dumpGLErrorLog();
 }

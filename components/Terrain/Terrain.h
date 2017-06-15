@@ -26,6 +26,7 @@ public:
 private:
     void noise();
     void setupPlane();
+    void setupRock(const char *rockFile);
     void createTile(glm::vec2 offset, GLfloat scale, GLint edgeMorph);
 
     struct {
@@ -37,7 +38,7 @@ private:
     } Edge;
 
     struct {
-        GLint ViewMatrixLoc, ProjectionMatrixLoc;
+        GLint ViewMatrixLoc, ProjectionMatrixLoc, worldWidthLoc;
         GLint uEdgeMorphLoc, globalOffsetLoc, uOffsetXLoc, uOffsetYLoc, uScaleLoc;
     } BodyUniformLoc;
 
@@ -48,13 +49,13 @@ private:
         GLint edgeMorph;
     };
     glm::mat4 &viewMatObj, &projMatObj;
-    GLuint program, vao, tbo, vbo;
+    GLuint program, vao, heightData, vbo, rockData;
     GLfloat *noiseData = nullptr;
     vector<glm::vec2> plane;
     glm::vec3 &globalOffset;
     vector<TileInfo> tiles;
-    int levels = 4;
-    int worldWidth = 3000;
+    int levels = 22;
+    int worldWidth = 1000000;
 };
 
 
