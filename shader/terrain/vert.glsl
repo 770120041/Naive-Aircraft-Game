@@ -31,7 +31,7 @@ void main() {
 
     float grid = uScale / TILE_RESOLUTION;
     vPosition.xy = vertPosition;
-    vPosition.xy = vPosition.xy * uScale + uOffset;
+    vPosition.xy = vPosition.xy * uScale + uOffset + globalOffset.xy;
     vPosition.z = 0.f;
     vec2 scaledPos = (vPosition.xy / worldWidth + 1.f) * .5f;
     vPosition.z = getHeight(scaledPos);

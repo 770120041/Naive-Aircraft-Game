@@ -20,7 +20,7 @@ void main() {
   vec3 color = texture(uRock, vPosition.xz * 10.f).rgb;
 
   if (vPosition.y < 5.f) {
-    color = texture(uAirport, vPosition.xz * 10.f).rgb;
+    color = texture(uAirport, vPosition.xz * 100.f + .4f).rgb;
   }
 
 
