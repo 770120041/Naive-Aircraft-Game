@@ -48,7 +48,7 @@ public:
 
     void idle();
 
-    bool isCollided(AABB* a);
+    bool isCollided(AABB *a);
 
 protected:
     void updateMVP();
@@ -61,7 +61,7 @@ private:
     GLuint pb, vb, fb, shadowProgram, shadowVert, shadowFrag;
 
     //mouse motion
-    bool firstPerson= false;
+    bool firstPerson = false;
     glm::vec3 lastPosition;
     glm::vec3 dir;
     bool stopCameraTracing = false;
@@ -114,7 +114,7 @@ private:
     glm::vec3 currentPos = glm::vec3(0.f), upVector = Z;
 
     const GLfloat planeWeight = 1;
-    GLfloat engineForce = .80f;
+    GLfloat engineForce = 9.80f;
 
     glm::vec3 planeAcceleration;
     glm::vec3 planeVelocity;
@@ -126,7 +126,7 @@ private:
 
     glm::vec3 &cameraLocation;
 
-    GLfloat rotateLR = 0.f, rotateUD = 0.f,rotateQE=0.f;
+    GLfloat rotateLR = 0.f, rotateUD = 0.f, rotateQE = 0.f;
 
     GLfloat scale = .5f;
 

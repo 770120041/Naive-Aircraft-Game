@@ -54,7 +54,4 @@ void AABB::updataAABB(glm::vec3 getcenter) {
     min += center - getcenter;
     center = getcenter;
     radius = max - center;
-    cout << max.x << " " << max.y << " " << max.z << "| " << min.x << " "
-            << min.y << " "
-            << min.z << " " << endl;
 }

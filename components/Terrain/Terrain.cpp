@@ -207,16 +207,16 @@ void Terrain::noise() {
         noiseData[i] -= minNoise;
     }
 
-    for (int i = 0; i < 64; i++) {
-        for (int j = 0; j < 256; j++) {
-            int p = i + 512 - 32;
-            int q = j + 512 - 128;
-            double a = (i < 32 ? (32 - i) / 32.0 : 0) + (i > 64 - 32 ? (i - 64 + 32) / 32.0 : 0)
-                       + (j < 32 ? (32 - j) / 32.0 : 0) + (j > 256 - 32 ? (j - 256 + 32) / 32.0 : 0);
-            if (a > 1) { a = 1; }
-            noiseData[p * width + q] *= a;
-        }
-    }
+//    for (int i = 0; i < 64; i++) {
+//        for (int j = 0; j < 256; j++) {
+//            int p = i + 512 - 32;
+//            int q = j + 512 - 128;
+//            double a = (i < 32 ? (32 - i) / 32.0 : 0) + (i > 64 - 32 ? (i - 64 + 32) / 32.0 : 0)
+//                       + (j < 32 ? (32 - j) / 32.0 : 0) + (j > 256 - 32 ? (j - 256 + 32) / 32.0 : 0);
+//            if (a > 1) { a = 1; }
+//            noiseData[p * width + q] *= a;
+//        }
+//    }
 
     glUseProgram(program);
     glGenTextures(1, &heightData);

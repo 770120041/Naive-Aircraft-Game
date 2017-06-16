@@ -4,7 +4,10 @@
 
 #include "Aircraft.h"
 
-Aircraft::Aircraft(glm::mat4 &viewMatrix, glm::mat4 &projMatrix, glm::vec3 &cameraLocation) : viewMatObj(viewMatrix), projMatObj(projMatrix), cameraLocation(cameraLocation) {
+Aircraft::Aircraft(glm::mat4 &viewMatrix, glm::mat4 &projMatrix, glm::vec3 &cameraLocation) : viewMatObj(viewMatrix),
+                                                                                              projMatObj(projMatrix),
+                                                                                              cameraLocation(
+                                                                                                      cameraLocation) {
     for (int i = 0; i < 3; i++) {
         planeVelocity[i] = 0;
         planeAcceleration[i] = 0;
@@ -210,9 +213,9 @@ void Aircraft::setBodyUniforms() {
 }
 
 void Aircraft::setCameraCoordinate() {
-    glm::mat4 rotateMat =glm::rotate(rotateLR, Z) *glm::rotate(rotateQE ,Y);
-    glm::vec4 viewDirect4 = glm::vec4(glm::vec3(viewDirVect),1.0f);
-    glm::vec3 afterRotate =  rotateMat * viewDirect4 ;
+    glm::mat4 rotateMat = glm::rotate(rotateLR, Z) * glm::rotate(rotateQE, Y);
+    glm::vec4 viewDirect4 = glm::vec4(glm::vec3(viewDirVect), 1.0f);
+    glm::vec3 afterRotate = rotateMat * viewDirect4;
     dir = afterRotate * polar_r;
     LightDirection = normalize(glm::vec3(100.f, 200.f, 100.f));
 
@@ -221,26 +224,29 @@ void Aircraft::setCameraCoordinate() {
     LightDirection = LightDirection * polar_r;
 
     dir += currentPos;
+
+//    cout << lastPosition.x << " " << lastPosition.y << " " << lastPosition.z << endl;
     if (stopCameraTracing) {
+        cameraLocation = lastPosition + cameraFront;
         viewMatObj = glm::lookAt(
                 lastPosition,
                 lastPosition + cameraFront,
                 lookAtVect
         );
 
-    }
-    else if(firstPerson){
-        glm::vec3 firstPersonSight ;
+    } else if (firstPerson) {
+        glm::vec3 firstPersonSight;
         firstPersonSight[0] = dir[0];
-        firstPersonSight[1] = dir[1]-475.0f;
-        firstPersonSight[2] = dir[2]+3500.0f;
+        firstPersonSight[1] = dir[1] - 475.0f;
+        firstPersonSight[2] = dir[2] + 3500.0f;
+        cameraLocation = firstPersonSight + cameraFront;
         viewMatObj = glm::lookAt(
                 firstPersonSight,
                 firstPersonSight + cameraFront,
                 lookAtVect
         );
-    }
-    else {
+    } else {
+        cameraLocation = dir + cameraFront;
         viewMatObj = glm::lookAt(
                 dir,
                 dir + cameraFront,
@@ -268,11 +274,11 @@ void Aircraft::idle() {
                          planeVelocity[2] * planeVelocity[2];
         airFriction[0] = airFricConst * planeVelocity[0] * sqrt(squareVelocity);
         airFriction[1] = airFricConst * planeVelocity[1] * sqrt(squareVelocity);
-        airFriction[2] = airFricConst  * planeVelocity[2] * sqrt(squareVelocity);
+        airFriction[2] = airFricConst * planeVelocity[2] * sqrt(squareVelocity);
 
 
-        pullForce[0] = engineForce * upVector[0]  ;
-        pullForce[1] = engineForce * upVector[1] ;
+        pullForce[0] = engineForce * upVector[0];
+        pullForce[1] = engineForce * upVector[1];
         pullForce[2] = engineForce * upVector[2];
 
 
@@ -301,7 +307,7 @@ void Aircraft::motion() {
 //    modelMatObj = glm::translate(currentPos) * rotateMat;
 
 
-    glm::mat4 rotateMat = glm::rotate(rotateLR, Z) * glm::rotate(rotateUD, X) *glm::rotate(rotateQE ,Y);
+    glm::mat4 rotateMat = glm::rotate(rotateLR, Z) * glm::rotate(rotateUD, X) * glm::rotate(rotateQE, Y);
     modelMatObj = glm::translate(currentPos) * rotateMat * glm::scale(glm::vec3(scale));
 
     upVector = rotateMat * glm::vec4(Z, 1.f);
@@ -313,8 +319,8 @@ void Aircraft::motion() {
 
 void Aircraft::render() {
 //    cout << currentPos.x << " " << currentPos.y << " " << currentPos.z << endl;
-    glm::mat4 lightViewMatrix = glm::lookAt(LightDirection, glm::vec3(0.f), Y),
-            lightProjectionMatrix(glm::ortho(-1200.f, 1200.f, -1200.f, 1200.f, 1000.f, 250000.f));
+    glm::mat4 lightViewMatrix = glm::lookAt(LightDirection + currentPos, glm::vec3(currentPos), Y),
+            lightProjectionMatrix(glm::ortho(-1200.f, 1200.f, -1200.f, 1200.f, 1000.f, 2500.f));
     //lightProjectionMatrix(glm::perspective(glm::radians(45.0f), 1.f, 1.0f, 5000.f));
     // todo !!!! ortho param quite strange still
 
@@ -523,6 +529,6 @@ void Aircraft::processMouseMotion(int xpos, int ypos) {
     setCameraCoordinate();
 }
 
-bool Aircraft::isCollided(AABB* a) {
+bool Aircraft::isCollided(AABB *a) {
     return aabb.isCollided(a);
 }
